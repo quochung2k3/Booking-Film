@@ -1,5 +1,5 @@
-﻿// Profile.jsx
-function Profile() {
+﻿// ListFilm.jsx
+function ListFilm() {
     return (
         <div>
             <h2>Profile</h2>
@@ -8,4 +8,4 @@ function Profile() {
     )
 }
 
-export default Profile
+export default ListFilm

@@ -4,8 +4,8 @@ import {Navigate, Route, Routes} from 'react-router-dom'
 import Header from "../utils/Admin/Header.jsx";
 import Navbar from "../utils/Admin/Navbar.jsx";
 import Dashboard from "../Components/Admin/Dashboard.jsx";
-import Settings from "../Components/Admin/Settings.jsx";
-import Profile from "../Components/Admin/Profile.jsx";
+import MovieScreenings from "../Components/Admin/MovieScreenings.jsx";
+import ListFilm from "../Components/Admin/ListFilm.jsx";
 
 // eslint-disable-next-line react/prop-types
 function Admin({onLogout}) {
@@ -16,8 +16,8 @@ function Admin({onLogout}) {
             <MainContent>
                 <Routes>
                     <Route path="dashboard" element={<Dashboard/>}/>
-                    <Route path="settings" element={<Settings/>}/>
-                    <Route path="profile" element={<Profile/>}/>
+                    <Route path="movie_screenings" element={<MovieScreenings/>}/>
+                    <Route path="list_film" element={<ListFilm/>}/>
                     <Route path="/" element={<Navigate to="dashboard"/>}/>
                 </Routes>
             </MainContent>

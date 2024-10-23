@@ -1,5 +1,5 @@
 ﻿// Navbar.jsx
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import styled from 'styled-components'
 
 function Navbar() {
@@ -10,10 +10,10 @@ function Navbar() {
                     <StyledLink to="/admin/dashboard">Dashboard</StyledLink>
                 </NavItem>
                 <NavItem>
-                    <StyledLink to="/admin/settings">Settings</StyledLink>
+                    <StyledLink to="/admin/movie_screenings">Movie Screenings</StyledLink>
                 </NavItem>
                 <NavItem>
-                    <StyledLink to="/admin/profile">Profile</StyledLink>
+                    <StyledLink to="/admin/list_film">List Film</StyledLink>
                 </NavItem>
             </NavList>
         </NavContainer>
@@ -48,6 +48,7 @@ const StyledLink = styled(Link)`
     text-decoration: none;
     color: black;
     font-weight: bold;
+
     &:hover {
         color: #007bff;
     }

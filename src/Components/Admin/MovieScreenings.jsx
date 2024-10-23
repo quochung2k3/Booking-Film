@@ -1,5 +1,5 @@
-﻿// Settings.jsx
-function Settings() {
+﻿// MovieScreenings.jsx
+function MovieScreenings() {
     return (
         <div>
             <h2>Settings</h2>
@@ -8,4 +8,4 @@ function Settings() {
     )
 }
 
-export default Settings
+export default MovieScreenings
