@@ -168,3 +168,34 @@ export const cinemaData = [
         ]
     }
 ];
+
+export const dataBookingFilm = [
+    {
+        id: 1,
+        title: 'Venom: Kèo Cuối',
+        type: 'Khoa học, viễn tưởng',
+        duration: 109,
+        image: 'https://files.betacorp.vn/media%2fimages%2f2024%2f10%2f18%2f400x633%2D14%2D153720%2D181024%2D34.jpg',
+    },
+    {
+        id: 2,
+        title: 'Cô Dâu Hào Môn',
+        type: 'Tâm lý',
+        duration: 114,
+        image: 'https://files.betacorp.vn/media%2fimages%2f2024%2f10%2f18%2f400x633%2D14%2D153720%2D181024%2D34.jpg',
+    },
+    {
+        id: 3,
+        title: 'Tee Yod: Quỷ Án Tạng Phần 2',
+        type: 'Kinh dị',
+        duration: 111,
+        image: 'https://files.betacorp.vn/media%2fimages%2f2024%2f10%2f18%2f400x633%2D14%2D153720%2D181024%2D34.jpg',
+    },
+    {
+        id: 4,
+        title: 'Ngày Xưa Có Một Chuyện Tình',
+        type: 'Tình cảm',
+        duration: 135,
+        image: 'https://files.betacorp.vn/media%2fimages%2f2024%2f10%2f18%2f400x633%2D14%2D153720%2D181024%2D34.jpg',
+    },
+];
