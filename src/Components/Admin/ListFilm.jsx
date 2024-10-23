@@ -1,48 +1,56 @@
 ﻿// MovieList.jsx
 import {useState} from "react";
 import styled from "styled-components";
-
-const sampleMovies = [
-    {
-        id: 1,
-        movieName: "Inception",
-        description: "A mind-bending thriller about dream invasion.",
-        category: "Science Fiction",
-        duration: "148 min",
-        releaseDate: "2010-07-16",
-        earlyReleaseDate: "2010-07-08",
-        country: "USA",
-        director: "Christopher Nolan",
-        listActor: "Leonardo DiCaprio, Joseph Gordon-Levitt, Ellen Page",
-        imageUrl: "https://example.com/inception.jpg" // Replace with a real image URL
-    },
-    {
-        id: 2,
-        movieName: "The Godfather",
-        description: "A story about the powerful Italian-American crime family.",
-        category: "Crime, Drama",
-        duration: "175 min",
-        releaseDate: "1972-03-24",
-        earlyReleaseDate: "1972-03-14",
-        country: "USA",
-        director: "Francis Ford Coppola",
-        listActor: "Marlon Brando, Al Pacino, James Caan",
-        imageUrl: "https://example.com/godfather.jpg" // Replace with a real image URL
-    },
-    // Add more sample movies here
-];
+import UpdateMovieModal from "../../modal/UpdateMovieModal.jsx";
+import {sampleMovies} from "../../utils/data.jsx";
 
 function ListFilm() {
-    const [movies] = useState(sampleMovies);
+    const [movies, setMovies] = useState(sampleMovies);
     const [selectedMovie, setSelectedMovie] = useState(null);
+    const [isCreateMode, setIsCreateMode] = useState(false);
 
     const handleCardClick = (movie) => {
         setSelectedMovie(movie);
+        setIsCreateMode(false); // Open in update mode
+    };
+
+    const handleCreateClick = () => {
+        setSelectedMovie({
+            id: movies.length + 1,
+            movieName: "",
+            description: "",
+            category: "",
+            duration: "",
+            releaseDate: "",
+            earlyReleaseDate: "",
+            country: "",
+            director: "",
+            listActor: "",
+            imageUrl: ""
+        });
+        setIsCreateMode(true); // Open in create mode
+    };
+
+    const handleCloseModal = () => {
+        setSelectedMovie(null);
+        setIsCreateMode(false);
+    };
+
+    const handleSubmitModal = (updatedMovie) => {
+        if (isCreateMode) {
+            setMovies([...movies, updatedMovie]);
+        } else {
+            setMovies(movies.map((movie) =>
+                movie.id === updatedMovie.id ? updatedMovie : movie
+            ));
+        }
+        handleCloseModal();
     };
 
     return (
         <WrapperAll>
-            <h2>Movie List</h2>
+            <Button onClick={handleCreateClick}>Create Movie</Button>
+            <TitleCustom>Movie List</TitleCustom>
             <CardGrid>
                 {movies.map((movie) => (
                     <Card key={movie.id} onClick={() => handleCardClick(movie)}>
@@ -58,14 +66,13 @@ function ListFilm() {
                     </Card>
                 ))}
             </CardGrid>
-            {/*{selectedMovie && (*/}
-            {/*    <MovieDetails>*/}
-            {/*        <h3>{selectedMovie.movieName} Details</h3>*/}
-            {/*        <p><strong>Description:</strong> {selectedMovie.description}</p>*/}
-            {/*        <p><strong>Actors:</strong> {selectedMovie.listActor}</p>*/}
-            {/*        <button onClick={() => setSelectedMovie(null)}>Close</button>*/}
-            {/*    </MovieDetails>*/}
-            {/*)}*/}
+            {selectedMovie && (
+                <UpdateMovieModal
+                    movie={selectedMovie}
+                    onClose={handleCloseModal}
+                    onSubmit={handleSubmitModal}
+                />
+            )}
         </WrapperAll>
     );
 }
@@ -84,6 +91,16 @@ const WrapperAll = styled.div`
     border-radius: 8px;
 `;
 
+const Button = styled.button`
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+`;
+
 const CardGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -93,6 +110,7 @@ const CardGrid = styled.div`
 
 const Card = styled.div`
     display: flex;
+    align-items: center;
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -105,21 +123,22 @@ const Card = styled.div`
 `;
 
 const Image = styled.img`
-    width: 120px;
-    height: 180px;
+    padding: 1rem;
+    height: 240px;
     border-radius: 8px 0 0 8px;
-    object-fit: cover;
+    object-fit: contain;
+    flex: 2;
 `;
 
 const CardContent = styled.div`
     padding: 15px;
-    flex: 1;
+    flex: 2;
 `;
 
-const MovieDetails = styled.div`
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+const TitleCustom = styled.h2`
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
 `;

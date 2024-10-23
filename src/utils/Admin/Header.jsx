@@ -5,7 +5,7 @@ import styled from 'styled-components'
 function Header({onLogout}) {
     return (
         <HeaderContainer>
-            <Title>My Admin Panel</Title>
+            <Title>Admin</Title>
             <LogoutButton onClick={onLogout}>Logout</LogoutButton>
         </HeaderContainer>
     )
@@ -20,27 +20,31 @@ const HeaderContainer = styled.header`
     left: 0;
     right: 0;
     height: 60px;
-    background-color: #f0f0f0;
+    background-color: #0b9a7d; /* Matches the Navbar background */
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
     z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: #ecf0f1; /* Light text color for better contrast */
 `
 
 const Title = styled.h2`
     margin: 0;
+    color: #ecf0f1; /* Matches the text color with the Navbar */
 `
 
 const LogoutButton = styled.button`
-    background-color: #ff4d4d;
+    background-color: #e74c3c; /* Dark red for the button */
     border: none;
-    color: white;
+    color: #ecf0f1;
     padding: 10px 20px;
     cursor: pointer;
     border-radius: 5px;
+    transition: background-color 0.3s;
 
     &:hover {
-        background-color: #ff3333;
+        background-color: #c0392b; /* Darker shade on hover */
     }
 `

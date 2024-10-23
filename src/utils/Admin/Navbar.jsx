@@ -1,5 +1,5 @@
 ﻿// Navbar.jsx
-import {Link} from 'react-router-dom'
+import {NavLink} from 'react-router-dom'
 import styled from 'styled-components'
 
 function Navbar() {
@@ -7,13 +7,19 @@ function Navbar() {
         <NavContainer>
             <NavList>
                 <NavItem>
-                    <StyledLink to="/admin/dashboard">Dashboard</StyledLink>
+                    <StyledNavLink to="/admin/dashboard" activeClassName="active">
+                        Dashboard
+                    </StyledNavLink>
                 </NavItem>
                 <NavItem>
-                    <StyledLink to="/admin/movie_screenings">Movie Screenings</StyledLink>
+                    <StyledNavLink to="/admin/list_film" activeClassName="active">
+                        List Film
+                    </StyledNavLink>
                 </NavItem>
                 <NavItem>
-                    <StyledLink to="/admin/list_film">List Film</StyledLink>
+                    <StyledNavLink to="/admin/movie_screenings" activeClassName="active">
+                        Movie Screenings
+                    </StyledNavLink>
                 </NavItem>
             </NavList>
         </NavContainer>
@@ -27,11 +33,12 @@ const NavContainer = styled.nav`
     position: fixed;
     top: 60px;
     left: 0;
-    width: 15%;
+    width: 14%;
     height: calc(100vh - 60px);
-    background-color: #e0e0e0;
+    background-color: #2c3e50;
     padding: 20px;
     z-index: 900;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 `
 
 const NavList = styled.ul`
@@ -44,12 +51,22 @@ const NavItem = styled.li`
     margin-bottom: 10px;
 `
 
-const StyledLink = styled(Link)`
+const StyledNavLink = styled(NavLink)`
     text-decoration: none;
-    color: black;
+    color: #ecf0f1;
     font-weight: bold;
+    padding: 10px 15px;
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
 
     &:hover {
-        color: #007bff;
+        background-color: #34495e;
+        color: #ffffff;
+    }
+
+    &.active {
+        background-color: #007bff;
+        color: #ffffff;
     }
 `
