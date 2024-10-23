@@ -1,9 +1,8 @@
 ﻿// Header.jsx
-import React from 'react'
 import styled from 'styled-components'
 
 // eslint-disable-next-line react/prop-types
-function Header({ onLogout }) {
+function Header({onLogout}) {
     return (
         <HeaderContainer>
             <Title>My Admin Panel</Title>
@@ -40,6 +39,7 @@ const LogoutButton = styled.button`
     padding: 10px 20px;
     cursor: pointer;
     border-radius: 5px;
+
     &:hover {
         background-color: #ff3333;
     }
