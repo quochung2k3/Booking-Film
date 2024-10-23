@@ -11,16 +11,22 @@ import ListFilm from "../Components/Admin/ListFilm.jsx";
 function Admin({onLogout}) {
     return (
         <AdminContainer>
-            <Header onLogout={onLogout}/>
-            <Navbar/>
-            <MainContent>
-                <Routes>
-                    <Route path="dashboard" element={<Dashboard/>}/>
-                    <Route path="movie_screenings" element={<MovieScreenings/>}/>
-                    <Route path="list_film" element={<ListFilm/>}/>
-                    <Route path="/" element={<Navigate to="dashboard"/>}/>
-                </Routes>
-            </MainContent>
+            <HeaderWrapper>
+                <Header onLogout={onLogout}/>
+            </HeaderWrapper>
+            <div className="main-layout">
+                <NavbarWrapper>
+                    <Navbar/>
+                </NavbarWrapper>
+                <ContentWrapper>
+                    <Routes>
+                        <Route path="dashboard" element={<Dashboard/>}/>
+                        <Route path="movie_screenings" element={<MovieScreenings/>}/>
+                        <Route path="list_film" element={<ListFilm/>}/>
+                        <Route path="/" element={<Navigate to="dashboard"/>}/>
+                    </Routes>
+                </ContentWrapper>
+            </div>
         </AdminContainer>
     )
 }
@@ -28,14 +34,30 @@ function Admin({onLogout}) {
 export default Admin
 
 // Styled components
-const AdminContainer = styled.div`
+const AdminContainer = styled.main`
+    width: 100%;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+
+    .main-layout {
+        display: flex;
+    }
 `
 
-const MainContent = styled.div`
-    margin-left: 220px;
-    margin-top: 60px;
-    padding: 20px;
-    flex-grow: 1;
+const HeaderWrapper = styled.div`
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+`
+
+const NavbarWrapper = styled.div`
+
+`
+
+const ContentWrapper = styled.div`
+
 `

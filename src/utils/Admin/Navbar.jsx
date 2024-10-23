@@ -27,7 +27,7 @@ const NavContainer = styled.nav`
     position: fixed;
     top: 60px;
     left: 0;
-    width: 200px;
+    width: 15%;
     height: calc(100vh - 60px);
     background-color: #e0e0e0;
     padding: 20px;
