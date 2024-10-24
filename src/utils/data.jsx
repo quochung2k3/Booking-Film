@@ -29,90 +29,107 @@
 
 export const movieScreenings = [
     {
+        branchId: 1,
         branch: "Branch A",
         address: "123 Main St, District 1, HCMC",
         listShowTime: [
             {
+                id: 1,
                 screenId: 1,
                 screenName: "Screen 1",
                 filmName: "Mắt biếc",
                 startTime: "10:00",
                 duration: "116 min",
                 endTime: "11:56",
-                emptySeat: 50,
-                totalSeat: 100
+                emptySeat: 100,
+                totalSeat: 100,
+                date: '2024-10-27'
             },
             {
+                id: 2,
                 screenId: 2,
                 screenName: "Screen 2",
                 filmName: "Ngày Xưa Có Một Chuyện Tình",
                 startTime: "13:00",
                 duration: "135 min",
                 endTime: "15:15",
-                emptySeat: 30,
-                totalSeat: 100
+                emptySeat: 100,
+                totalSeat: 100,
+                date: '2024-10-27'
             }
         ]
     },
     {
+        branchId: 2,
         branch: "Branch B",
         address: "456 Central Park, District 3, HCMC",
         listShowTime: [
             {
+                id: 3,
                 screenId: 1,
                 screenName: "Screen 1",
                 filmName: "Mắt biếc",
                 startTime: "09:30",
                 duration: "116 min",
                 endTime: "11:26",
-                emptySeat: 70,
-                totalSeat: 120
+                emptySeat: 120,
+                totalSeat: 120,
+                date: '2024-10-27'
             },
             {
+                id: 4,
                 screenId: 2,
                 screenName: "Screen 2",
                 filmName: "The Godfather",
                 startTime: "14:00",
                 duration: "175 min",
                 endTime: "16:55",
-                emptySeat: 20,
-                totalSeat: 120
+                emptySeat: 120,
+                totalSeat: 120,
+                date: '2024-10-27'
             },
             {
+                id: 5,
                 screenId: 2,
                 screenName: "Screen 2",
                 filmName: "The Godfather",
                 startTime: "17:00",
                 duration: "175 min",
                 endTime: "19:55",
-                emptySeat: 20,
-                totalSeat: 120
+                emptySeat: 120,
+                totalSeat: 120,
+                date: '2024-10-27'
             }
         ]
     },
     {
+        branchId: 3,
         branch: "Branch C",
         address: "789 Cinema Blvd, District 7, HCMC",
         listShowTime: [
             {
+                id: 6,
                 screenId: 1,
                 screenName: "Screen 1",
                 filmName: "Inception",
                 startTime: "12:00",
                 duration: "148 min",
                 endTime: "14:28",
-                emptySeat: 40,
-                totalSeat: 90
+                emptySeat: 90,
+                totalSeat: 90,
+                date: '2024-10-27'
             },
             {
+                id: 7,
                 screenId: 2,
                 screenName: "Screen 2",
                 filmName: "Ngày Xưa Có Một Chuyện Tình",
                 startTime: "16:00",
                 duration: "135 min",
                 endTime: "18:15",
-                emptySeat: 25,
-                totalSeat: 90
+                emptySeat: 90,
+                totalSeat: 90,
+                date: '2024-10-27'
             }
         ]
     }
