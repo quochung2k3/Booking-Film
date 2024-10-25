@@ -2,7 +2,9 @@
 import styled from 'styled-components';
 import Header from "../utils/User/Header.jsx";
 import Footer from "../utils/User/Footer.jsx";
-import {dataBookingFilm} from "../utils/data.jsx";
+import {dataBookingFilm, dataBookingModal} from "../utils/data.jsx";
+import BookingModal from "../modal/BookingModal.jsx";
+import {useNavigate} from "react-router-dom";
 
 // Styled components
 const Container = styled.div`
@@ -96,7 +98,7 @@ const BuyButton = styled.button`
 `;
 
 // eslint-disable-next-line react/prop-types
-function MovieList({dataBookingFilm}) {
+function MovieList({dataBookingFilm, onBuyTicket}) {
     return (
         <MovieListContainer>
             {/* eslint-disable-next-line react/prop-types */}
@@ -106,7 +108,7 @@ function MovieList({dataBookingFilm}) {
                     <MovieTitle>{movie.title}</MovieTitle>
                     <MovieInfo>Thể loại: {movie.type}</MovieInfo>
                     <MovieInfo>Thời lượng: {movie.duration} phút</MovieInfo>
-                    <BuyButton>Mua vé</BuyButton>
+                    <BuyButton onClick={() => onBuyTicket(movie)}>Mua vé</BuyButton>
                 </MovieCard>
             ))}
         </MovieListContainer>
@@ -116,23 +118,75 @@ function MovieList({dataBookingFilm}) {
 // eslint-disable-next-line react/prop-types
 function User({onLogout}) {
     const [activeTab, setActiveTab] = useState('PHIM SẮP CHIẾU');
+    const [selectedMovie, setSelectedMovie] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [filteredShowtimes, setFilteredShowtimes] = useState([]);
+    const navigate = useNavigate();
+    const currentDate = new Date();
 
     const handleTabClick = (tabName) => {
         setActiveTab(tabName);
     };
 
+    const handleBuyTicketClick = (movie) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setSelectedMovie(movie);
+            const filteredData = dataBookingModal.filter(showtime => showtime.film_id === movie.id);
+            setFilteredShowtimes(filteredData);
+            setIsModalOpen(true);
+        } else {
+            navigate('/login');
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedMovie(null);
+        setFilteredShowtimes([]);
+    };
+
+    const moviesComingSoon = dataBookingFilm.filter(
+        (movie) => new Date(movie.early_release_date) > currentDate
+    );
+
+    const moviesNowShowing = dataBookingFilm.filter(
+        (movie) => new Date(movie.release_date) < currentDate
+    );
+
+    const specialShowings = dataBookingFilm.filter(
+        (movie) =>
+            new Date(movie.early_release_date) < currentDate &&
+            new Date(movie.release_date) > currentDate
+    );
+
+    let filteredMovies = [];
+    if (activeTab === 'PHIM SẮP CHIẾU') {
+        filteredMovies = moviesComingSoon;
+    } else if (activeTab === 'PHIM ĐANG CHIẾU') {
+        filteredMovies = moviesNowShowing;
+    } else if (activeTab === 'SUẤT CHIẾU ĐẶC BIỆT') {
+        filteredMovies = specialShowings;
+    }
+
     return (
         <Container>
             <Header onLogout={onLogout}/>
             <TabsContainer>
-                <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>PHIM SẮP
-                    CHIẾU</Tab>
-                <Tab active={activeTab === 'PHIM ĐANG CHIẾU'} onClick={() => handleTabClick('PHIM ĐANG CHIẾU')}>PHIM
-                    ĐANG CHIẾU</Tab>
-                <Tab active={activeTab === 'SUẤT CHIẾU ĐẶC BIỆT'} onClick={() => handleTabClick('SUẤT CHIẾU ĐẶC BIỆT')}>SUẤT
-                    CHIẾU ĐẶC BIỆT</Tab>
+                <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>
+                    PHIM SẮP CHIẾU
+                </Tab>
+                <Tab active={activeTab === 'PHIM ĐANG CHIẾU'} onClick={() => handleTabClick('PHIM ĐANG CHIẾU')}>
+                    PHIM ĐANG CHIẾU
+                </Tab>
+                <Tab active={activeTab === 'SUẤT CHIẾU ĐẶC BIỆT'} onClick={() => handleTabClick('SUẤT CHIẾU ĐẶC BIỆT')}>
+                    SUẤT CHIẾU ĐẶC BIỆT
+                </Tab>
             </TabsContainer>
-            <MovieList dataBookingFilm={dataBookingFilm}/>
+            <MovieList dataBookingFilm={filteredMovies} onBuyTicket={handleBuyTicketClick}/>
+            {isModalOpen && selectedMovie && (
+                <BookingModal movieTitle={selectedMovie.title} showTimes={filteredShowtimes} onClose={closeModal}/>
+            )}
             <Footer/>
         </Container>
     );

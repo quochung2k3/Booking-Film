@@ -29,7 +29,7 @@ function MovieScreenings() {
             branch: branch.branch,
             address: branch.address
         }))
-    ).filter(show => {
+    ).filter(() => {
         // Assuming selectedDate is used to filter by date, you can add more date filtering logic here
         return true; // Modify this line if you have specific date comparison logic
     });

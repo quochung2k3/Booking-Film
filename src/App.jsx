@@ -3,6 +3,7 @@ import {Route, Routes, Navigate} from 'react-router-dom';
 import Login from './pages/Login.jsx';
 import Admin from './pages/Admin.jsx';
 import User from './pages/User.jsx';
+import SolveBooking from "./pages/SolveBooking.jsx";
 
 function App() {
     const [roleId, setRoleId] = useState(null);
@@ -10,7 +11,7 @@ function App() {
 
     useEffect(() => {
         const savedRole = localStorage.getItem('roleId');
-        const token = localStorage.getItem('fakeToken');
+        const token = localStorage.getItem('token');
         if (savedRole && token) {
             setRoleId(parseInt(savedRole, 10));
             setFakeToken(token);
@@ -19,7 +20,7 @@ function App() {
 
     const handleLogin = (role, token) => {
         localStorage.setItem('roleId', role);
-        localStorage.setItem('fakeToken', token);
+        localStorage.setItem('token', token);
         setRoleId(role);
         setFakeToken(token);
     };
@@ -27,7 +28,7 @@ function App() {
     const handleLogout = () => {
         console.log('Logging out...');
         localStorage.removeItem('roleId');
-        localStorage.removeItem('fakeToken');
+        localStorage.removeItem('token');
         setRoleId(null);
         setFakeToken(null);
     };
@@ -43,8 +44,12 @@ function App() {
                 element={fakeToken && roleId === 1 ? <Admin onLogout={handleLogout}/> : <Navigate to="/login"/>}
             />
             <Route
-                path="/user/*"
+                path="/user"
                 element={<User onLogout={handleLogout}/>}
+            />
+            <Route
+                path="/user/booking/:showTimeId"
+                element={<SolveBooking onLogout={handleLogout}/>}
             />
             <Route
                 path="/"

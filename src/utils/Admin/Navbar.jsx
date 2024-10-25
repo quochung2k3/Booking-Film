@@ -21,6 +21,11 @@ function Navbar() {
                         Movie Screenings
                     </StyledNavLink>
                 </NavItem>
+                <NavItem>
+                    <StyledNavLink to="/admin/voucher" activeClassName="active">
+                        Voucher
+                    </StyledNavLink>
+                </NavItem>
             </NavList>
         </NavContainer>
     )

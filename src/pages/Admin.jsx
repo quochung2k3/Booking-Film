@@ -6,6 +6,8 @@ import Navbar from "../utils/Admin/Navbar.jsx";
 import Dashboard from "../Components/Admin/Dashboard.jsx";
 import MovieScreenings from "../Components/Admin/MovieScreenings.jsx";
 import ListFilm from "../Components/Admin/ListFilm.jsx";
+import Voucher from "../Components/Admin/Voucher.jsx";
+
 
 // eslint-disable-next-line react/prop-types
 function Admin({onLogout}) {
@@ -23,6 +25,7 @@ function Admin({onLogout}) {
                         <Route path="dashboard" element={<Dashboard/>}/>
                         <Route path="movie_screenings" element={<MovieScreenings/>}/>
                         <Route path="list_film" element={<ListFilm/>}/>
+                        <Route path="voucher" element={<Voucher/>}/>
                         <Route path="/" element={<Navigate to="dashboard"/>}/>
                     </Routes>
                 </ContentWrapper>
