@@ -62,7 +62,7 @@ const Seat = styled.div`
             case 'selected':
                 return '#007BFF';
             case 'booked':
-                return '#FF0000'; // Màu đỏ cho ghế đã đặt
+                return '#FF0000';
             case 'reserved':
                 return '#FFD700';
             default:
@@ -167,6 +167,33 @@ const ContentWrapper = styled.div`
 
 `
 
+const DiscountWrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+`
+
+const InputCustom = styled.input`
+    width: 40%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 2px solid #333;
+`
+
+const VoucherCustom = styled.span`
+    font-weight: bold;
+`
+const ButtonVoucherCustom = styled.button`
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+`
+
 const getBookedSeats = (data) => {
     return data
         .filter(item => item.is_active)
@@ -206,7 +233,7 @@ function SolveBooking({onLogout}) {
     const handleSeatClick = (rowIndex, seatIndex) => {
         const seatId = seats[rowIndex][seatIndex].seatId;
         if (seats[rowIndex][seatIndex].status === 'booked') {
-            return; // Không cho phép chọn ghế đã đặt
+            return;
         }
 
         setSeats((prevSeats) =>
@@ -294,10 +321,14 @@ function SolveBooking({onLogout}) {
                             <MovieAttribute><strong>Phòng chiếu:</strong> P1</MovieAttribute>
                         </ContentWrapper>
                     </MovieInfo>
+                    <DiscountWrapper>
+                        <VoucherCustom>Mã voucher: </VoucherCustom>
+                        <InputCustom placeholder={'Voucher code'}/>
+                        <ButtonVoucherCustom>Áp dụng</ButtonVoucherCustom>
+                    </DiscountWrapper>
                     <Button>Tiếp tục</Button>
-                    {/* Hiển thị thông tin ghế đã chọn và tổng số tiền */}
                     <div style={{textAlign: 'left', margin: '6px', width: '100%', paddingLeft: '2rem'}}>
-                        <p><strong>Ghế đã chọn:</strong> {selectedSeats.length > 0 ? selectedSeats.join(', ') : '[]'}
+                        <p><strong>Ghế đã chọn: </strong>{selectedSeats.length > 0 ? selectedSeats.join(', ') : '[]'}
                         </p>
                         <p><strong>Tổng số tiền:</strong> {totalPrice.toLocaleString()} VND</p>
                     </div>

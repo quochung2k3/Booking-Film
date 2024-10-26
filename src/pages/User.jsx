@@ -1,4 +1,4 @@
-﻿import {useState} from 'react';
+﻿import React, {useState} from 'react';
 import styled from 'styled-components';
 import Header from "../utils/User/Header.jsx";
 import Footer from "../utils/User/Footer.jsx";
@@ -97,6 +97,63 @@ const BuyButton = styled.button`
     }
 `;
 
+const ModalOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const ModalContent = styled.div`
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 300px;
+`;
+
+const StayPageCustom = styled.button`
+    background-color: #9be59b;
+    &:hover {
+        opacity: 0.8;
+    }
+`
+
+const ConfirmCustom = styled.button`
+    margin-left: 20px;
+    background-color: #007bff;
+
+    &:hover {
+        opacity: 0.8;
+    }
+`
+
+const NoticeCustom = styled.p `
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding: 0;
+    font-weight: bold;
+`
+
+// Login Alert Modal
+// eslint-disable-next-line react/prop-types
+function LoginAlertModal({onStay, onRedirect}) {
+    return (
+        <ModalOverlay>
+            <ModalContent>
+                <NoticeCustom>Bạn phải đăng nhập mới được đặt vé</NoticeCustom>
+                <StayPageCustom onClick={onStay}>Ở lại trang</StayPageCustom>
+                <ConfirmCustom onClick={onRedirect}>OK</ConfirmCustom>
+            </ModalContent>
+        </ModalOverlay>
+    );
+}
+
 // eslint-disable-next-line react/prop-types
 function MovieList({dataBookingFilm, onBuyTicket}) {
     return (
@@ -120,6 +177,7 @@ function User({onLogout}) {
     const [activeTab, setActiveTab] = useState('PHIM SẮP CHIẾU');
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
     const [filteredShowtimes, setFilteredShowtimes] = useState([]);
     const navigate = useNavigate();
     const currentDate = new Date();
@@ -136,7 +194,7 @@ function User({onLogout}) {
             setFilteredShowtimes(filteredData);
             setIsModalOpen(true);
         } else {
-            navigate('/login');
+            setIsLoginAlertOpen(true);
         }
     };
 
@@ -144,6 +202,15 @@ function User({onLogout}) {
         setIsModalOpen(false);
         setSelectedMovie(null);
         setFilteredShowtimes([]);
+    };
+
+    const closeLoginAlert = () => {
+        setIsLoginAlertOpen(false);
+    };
+
+    const redirectToLogin = () => {
+        setIsLoginAlertOpen(false);
+        navigate('/login');
     };
 
     const moviesComingSoon = dataBookingFilm.filter(
@@ -186,6 +253,9 @@ function User({onLogout}) {
             <MovieList dataBookingFilm={filteredMovies} onBuyTicket={handleBuyTicketClick}/>
             {isModalOpen && selectedMovie && (
                 <BookingModal movieTitle={selectedMovie.title} showTimes={filteredShowtimes} onClose={closeModal}/>
+            )}
+            {isLoginAlertOpen && (
+                <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin}/>
             )}
             <Footer/>
         </Container>

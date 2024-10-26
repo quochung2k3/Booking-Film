@@ -25,8 +25,9 @@ function Header({onLogout}) {
     const handleLogoutClick = () => {
         console.log("Button clicked");
         onLogout();
-        localStorage.removeItem("token"); // Remove token on logout
+        localStorage.removeItem("token");
         setIsLoggedIn(false);
+        navigate("/");
     };
 
     return (

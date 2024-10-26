@@ -35,14 +35,6 @@ function ScreeningModal({onClose}) {
             <ModalContent>
                 <TitleCustom>Create Movie Screening</TitleCustom>
                 <FormGroup>
-                    <LabelCustom>Date:</LabelCustom>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                    />
-                </FormGroup>
-                <FormGroup>
                     <LabelCustom>Movie:</LabelCustom>
                     <select
                         value={selectedMovie}
@@ -55,6 +47,14 @@ function ScreeningModal({onClose}) {
                             </option>
                         ))}
                     </select>
+                </FormGroup>
+                <FormGroup>
+                    <LabelCustom>Date:</LabelCustom>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                    />
                 </FormGroup>
                 <FormGroupRow>
                     <FormGroup>
