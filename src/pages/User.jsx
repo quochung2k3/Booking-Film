@@ -1,4 +1,4 @@
-﻿import React, {useState} from 'react';
+﻿import {useState} from 'react';
 import styled from 'styled-components';
 import Header from "../utils/User/Header.jsx";
 import Footer from "../utils/User/Footer.jsx";
@@ -119,6 +119,7 @@ const ModalContent = styled.div`
 
 const StayPageCustom = styled.button`
     background-color: #9be59b;
+
     &:hover {
         opacity: 0.8;
     }
@@ -133,7 +134,7 @@ const ConfirmCustom = styled.button`
     }
 `
 
-const NoticeCustom = styled.p `
+const NoticeCustom = styled.p`
     margin-top: 0;
     margin-bottom: 16px;
     padding: 0;
