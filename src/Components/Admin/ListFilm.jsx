@@ -1,13 +1,41 @@
 ﻿// MovieList.jsx
-import {useState} from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import styled from "styled-components";
 import UpdateMovieModal from "../../modal/UpdateMovieModal.jsx";
-import {sampleMovies} from "../../utils/data.jsx";
 
 function ListFilm() {
-    const [movies, setMovies] = useState(sampleMovies);
+    const [movies, setMovies] = useState([]);
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [isCreateMode, setIsCreateMode] = useState(false);
+
+    // Fetch movies from API
+    useEffect(() => {
+        const fetchMovies = async () => {
+            try {
+                const response = await axios.get("http://localhost:3000/api/v1/film/");
+                const apiMovies = response.data.map((movie) => ({
+                    id: movie._id,
+                    movieName: movie.film_name,
+                    description: movie.description,
+                    category: movie.category_id?.category_name || "Unknown",
+                    duration: `${movie.duration} minutes`,
+                    releaseDate: new Date(movie.release_date).toLocaleDateString(),
+                    earlyReleaseDate: movie.early_release_date
+                        ? new Date(movie.early_release_date).toLocaleDateString()
+                        : null,
+                    country: movie.country || "Unknown",
+                    director: movie.director,
+                    listActor: movie.list_actor.join(", ") || "Unknown",
+                    imageUrl: movie.image_url || "",
+                }));
+                setMovies(apiMovies);
+            } catch (error) {
+                console.error("Error fetching movies:", error);
+            }
+        };
+        fetchMovies();
+    }, []);
 
     const handleCardClick = (movie) => {
         setSelectedMovie(movie);
@@ -54,7 +82,7 @@ function ListFilm() {
             <CardGrid>
                 {movies.map((movie) => (
                     <Card key={movie.id} onClick={() => handleCardClick(movie)}>
-                        <Image src={movie.imageUrl} alt={movie.movieName}/>
+                        <Image src={movie.imageUrl} alt={movie.movieName} />
                         <CardContent>
                             <h3>{movie.movieName}</h3>
                             <p><strong>Category:</strong> {movie.category}</p>

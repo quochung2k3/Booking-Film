@@ -6,12 +6,26 @@ import styled from "styled-components";
 function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
     const [isChanged, setIsChanged] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    let title = 'Create Movie';
+    if(movie.movieName)
+    {
+        title = 'Details'
+    }
+
+    console.log("movie: ", movie)
 
     // Reset dữ liệu khi mở modal
     useEffect(() => {
         setMovieData(movie);
         setIsChanged(false);
     }, [movie]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setSelectedImage(file);
+        setIsChanged(true); // Đánh dấu đã có thay đổi
+    };
 
     const handleInputChange = (e) => {
         const {name, value} = e.target;
@@ -24,10 +38,59 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         setIsChanged(false); // Reset lại trạng thái thay đổi
     };
 
-    const handleSubmit = () => {
-        onSubmit(movieData);
-        onClose();
+    const handleSubmit = async () => {
+        let method = 'POST';
+        let url = 'http://localhost:3000/api/v1/film/';
+    
+        // Nếu đang cập nhật phim hiện tại, sử dụng PUT thay vì POST
+        if (title === 'Details') {
+            method = 'PUT';
+            url = `http://localhost:3000/api/v1/film/${movieData.id}`;
+        }
+    
+        try {
+            const formData = new FormData();
+    
+            // Thêm các trường dữ liệu khác vào FormData
+            for (const key in movieData) {
+                if (movieData[key]) {
+                    formData.append(key, movieData[key]);
+                }
+            }
+    
+            // Kiểm tra nếu hình ảnh đã được chọn
+            if (selectedImage) {
+                formData.append("image", selectedImage);
+            } else {
+                alert("Vui lòng chọn hình ảnh trước khi gửi.");
+                return;
+            }
+    
+            // Gỡ lỗi FormData để xem nội dung của nó
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
+    
+            const response = await fetch(url, {
+                method: method,
+                body: formData,
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim`);
+            }
+    
+            const result = await response.json();
+            console.log(`Phim ${method === 'POST' ? 'được tạo' : 'được cập nhật'} thành công!`, result);
+            onSubmit(result); // Thông báo cho component cha với kết quả
+            onClose(); // Đóng modal
+        } catch (error) {
+            console.error("Lỗi:", error.message);
+            alert("Có lỗi xảy ra. Vui lòng thử lại.");
+        }
     };
+    
+    
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -39,7 +102,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         <ModalOverlay onClick={handleOverlayClick}>
             <ModalContent>
                 <TitleCustom>
-                    {movieData.movieName ? `Details` : "Create Movie"}
+                    {title}
                 </TitleCustom>
                 <FormGrid>
                     <FormItem>
@@ -123,12 +186,11 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         />
                     </FormItem>
                     <FormItem fullWidth>
-                        <LabelCustom>Image URL:</LabelCustom>
+                        <LabelCustom>Image:</LabelCustom>
                         <StyledInput
-                            type="text"
-                            name="imageUrl"
-                            value={movieData.imageUrl}
-                            onChange={handleInputChange}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange} // Xử lý chọn ảnh
                         />
                     </FormItem>
                 </FormGrid>
