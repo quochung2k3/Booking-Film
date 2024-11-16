@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {Route, Routes, Navigate} from 'react-router-dom';
-import Login from './pages/Login.jsx';
+import AuthTabs from './pages/AuthTabs.jsx';
 import Admin from './pages/Admin.jsx';
 import User from './pages/User.jsx';
 import SolveBooking from "./pages/SolveBooking.jsx";
@@ -37,7 +37,7 @@ function App() {
         <Routes>
             <Route
                 path="/login"
-                element={fakeToken ? <Navigate to="/"/> : <Login onLogin={handleLogin}/>}
+                element={fakeToken ? <Navigate to="/"/> : <AuthTabs onLogin={handleLogin}/>}
             />
             <Route
                 path="/admin/*"
