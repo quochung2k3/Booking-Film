@@ -1,10 +1,10 @@
-﻿import React, {useState} from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Header from "../utils/User/Header.jsx";
 import Footer from "../utils/User/Footer.jsx";
-import {dataBookingFilm, dataBookingModal} from "../utils/data.jsx";
 import BookingModal from "../modal/BookingModal.jsx";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 // Styled components
 const Container = styled.div`
@@ -96,7 +96,6 @@ const BuyButton = styled.button`
         background-color: #0056b3;
     }
 `;
-
 const ModalOverlay = styled.div`
     position: fixed;
     top: 0;
@@ -108,7 +107,6 @@ const ModalOverlay = styled.div`
     align-items: center;
     justify-content: center;
 `;
-
 const ModalContent = styled.div`
     background: white;
     padding: 20px;
@@ -116,14 +114,20 @@ const ModalContent = styled.div`
     text-align: center;
     width: 300px;
 `;
+const NoticeCustom = styled.p`
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding: 0;
+    font-weight: bold;
+    color: black; 
+`;
 
 const StayPageCustom = styled.button`
     background-color: #9be59b;
     &:hover {
         opacity: 0.8;
     }
-`
-
+`;
 const ConfirmCustom = styled.button`
     margin-left: 20px;
     background-color: #007bff;
@@ -131,17 +135,9 @@ const ConfirmCustom = styled.button`
     &:hover {
         opacity: 0.8;
     }
-`
+`;
 
-const NoticeCustom = styled.p `
-    margin-top: 0;
-    margin-bottom: 16px;
-    padding: 0;
-    font-weight: bold;
-`
 
-// Login Alert Modal
-// eslint-disable-next-line react/prop-types
 function LoginAlertModal({onStay, onRedirect}) {
     return (
         <ModalOverlay>
@@ -154,16 +150,15 @@ function LoginAlertModal({onStay, onRedirect}) {
     );
 }
 
-// eslint-disable-next-line react/prop-types
-function MovieList({dataBookingFilm, onBuyTicket}) {
+function MovieList({ dataBookingFilm, onBuyTicket }) {
     return (
         <MovieListContainer>
-            {/* eslint-disable-next-line react/prop-types */}
             {dataBookingFilm.map((movie) => (
-                <MovieCard key={movie.id}>
-                    <MovieImage src={movie.image} alt={movie.title}/>
-                    <MovieTitle>{movie.title}</MovieTitle>
-                    <MovieInfo>Thể loại: {movie.type}</MovieInfo>
+                <MovieCard key={movie._id}>
+                    <MovieImage src={movie.image_url} alt={movie.film_name} />
+                    <MovieTitle>{movie.film_name}</MovieTitle>
+                    
+                    <MovieInfo>Thể loại: {movie.category_id?.category_name || "N/A"}</MovieInfo>
                     <MovieInfo>Thời lượng: {movie.duration} phút</MovieInfo>
                     <BuyButton onClick={() => onBuyTicket(movie)}>Mua vé</BuyButton>
                 </MovieCard>
@@ -172,36 +167,56 @@ function MovieList({dataBookingFilm, onBuyTicket}) {
     );
 }
 
-// eslint-disable-next-line react/prop-types
-function User({onLogout}) {
+function User({ onLogout }) {
     const [activeTab, setActiveTab] = useState('PHIM SẮP CHIẾU');
-    const [selectedMovie, setSelectedMovie] = useState(null);
+    const [filteredMovies, setFilteredMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedMovie, setSelectedMovie] = useState(null);
     const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
-    const [filteredShowtimes, setFilteredShowtimes] = useState([]);
     const navigate = useNavigate();
-    const currentDate = new Date();
+
+    useEffect(() => {
+        const fetchMovies = async () => {
+            let apiUrl = '';
+            if (activeTab === 'PHIM SẮP CHIẾU') {
+                apiUrl = 'http://localhost:3000/api/v1/film';
+            } else if (activeTab === 'PHIM ĐANG CHIẾU') {
+                apiUrl = 'http://localhost:3000/api/v1/film';
+            } else if (activeTab === 'SUẤT CHIẾU ĐẶC BIỆT') {
+                apiUrl = 'http://localhost:3000/api/v1/film';
+            }
+
+            try {
+                const response = await axios.get(apiUrl);
+                setFilteredMovies(response.data);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách phim:', error);
+            }
+        };
+
+        fetchMovies();
+    }, [activeTab]);
 
     const handleTabClick = (tabName) => {
         setActiveTab(tabName);
     };
 
     const handleBuyTicketClick = (movie) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setSelectedMovie(movie);
-            const filteredData = dataBookingModal.filter(showtime => showtime.film_id === movie.id);
-            setFilteredShowtimes(filteredData);
-            setIsModalOpen(true);
-        } else {
-            setIsLoginAlertOpen(true);
+        const token = localStorage.getItem('token'); 
+        if (!token) {
+            setIsLoginAlertOpen(true); 
+            return;
         }
+        setSelectedMovie(movie);
+        setIsModalOpen(true);
     };
+    
+    
+
 
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedMovie(null);
-        setFilteredShowtimes([]);
     };
 
     const closeLoginAlert = () => {
@@ -213,32 +228,9 @@ function User({onLogout}) {
         navigate('/login');
     };
 
-    const moviesComingSoon = dataBookingFilm.filter(
-        (movie) => new Date(movie.early_release_date) > currentDate
-    );
-
-    const moviesNowShowing = dataBookingFilm.filter(
-        (movie) => new Date(movie.release_date) < currentDate
-    );
-
-    const specialShowings = dataBookingFilm.filter(
-        (movie) =>
-            new Date(movie.early_release_date) < currentDate &&
-            new Date(movie.release_date) > currentDate
-    );
-
-    let filteredMovies = [];
-    if (activeTab === 'PHIM SẮP CHIẾU') {
-        filteredMovies = moviesComingSoon;
-    } else if (activeTab === 'PHIM ĐANG CHIẾU') {
-        filteredMovies = moviesNowShowing;
-    } else if (activeTab === 'SUẤT CHIẾU ĐẶC BIỆT') {
-        filteredMovies = specialShowings;
-    }
-
     return (
         <Container>
-            <Header onLogout={onLogout}/>
+            <Header onLogout={onLogout} />
             <TabsContainer>
                 <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>
                     PHIM SẮP CHIẾU
@@ -250,16 +242,19 @@ function User({onLogout}) {
                     SUẤT CHIẾU ĐẶC BIỆT
                 </Tab>
             </TabsContainer>
-            <MovieList dataBookingFilm={filteredMovies} onBuyTicket={handleBuyTicketClick}/>
+            <MovieList dataBookingFilm={filteredMovies} onBuyTicket={handleBuyTicketClick} />
             {isModalOpen && selectedMovie && (
-                <BookingModal movieTitle={selectedMovie.title} showTimes={filteredShowtimes} onClose={closeModal}/>
+                <BookingModal
+                    movieTitle={selectedMovie.film_name} 
+                    movieId={selectedMovie._id}
+                    onClose={() => setIsModalOpen(false)}
+                />
             )}
             {isLoginAlertOpen && (
                 <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin}/>
             )}
-            <Footer/>
+            <Footer />
         </Container>
     );
 }
-
 export default User;
