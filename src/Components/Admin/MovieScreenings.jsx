@@ -1,14 +1,34 @@
-﻿// MovieScreenings.jsx
-import {useState} from "react";
+﻿import { useState, useEffect } from "react";
+import { format, addMinutes } from 'date-fns';
 import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ScreeningModal from "../../modal/ScreeningModal.jsx";
-import {movieScreenings} from "../../utils/data.jsx";
+import axios from "axios"; // Để thực hiện gọi API
 
 function MovieScreenings() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showModal, setShowModal] = useState(false);
+    const [screeningsList, setScreeningsList] = useState([]);
+
+    // Lấy dữ liệu buổi chiếu từ API
+    useEffect(() => {
+        const fetchScreenings = async () => {
+            try {
+                const response = await axios.get("http://localhost:3000/api/v1/showtime", {
+                    params: {
+                        date: selectedDate.toISOString().split("T")[0] // Định dạng ngày theo kiểu YYYY-MM-DD
+                    }
+                });
+                setScreeningsList(response.data);
+                console.log("repose: ", response.data)
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu buổi chiếu phim:", error);
+            }
+        };
+
+        fetchScreenings();
+    }, [selectedDate]); // Lấy lại dữ liệu khi selectedDate thay đổi
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -22,32 +42,20 @@ function MovieScreenings() {
         setShowModal(false);
     };
 
-    // Flatten listShowTime from all branches
-    const screeningsList = movieScreenings.flatMap(branch =>
-        branch.listShowTime.map(show => ({
-            ...show,
-            branch: branch.branch,
-            address: branch.address
-        }))
-    ).filter(() => {
-        // Assuming selectedDate is used to filter by date, you can add more date filtering logic here
-        return true; // Modify this line if you have specific date comparison logic
-    });
-
     const handleEdit = (show) => {
-        console.log("Edit", show);
-        // Logic for editing the screening
+        console.log("Chỉnh sửa", show);
+        // Logic chỉnh sửa buổi chiếu
     };
 
     const handleDelete = (show) => {
-        console.log("Delete", show);
-        // Logic for deleting the screening
+        console.log("Xóa", show);
+        // Logic xóa buổi chiếu
     };
 
     return (
         <Container>
-            <CreateButton onClick={handleCreateClick}>Create Movie Screening</CreateButton>
-            <h2>Movie Screenings</h2>
+            <CreateButton onClick={handleCreateClick}>Create a Movie Show</CreateButton>
+            <h2>List Of Movie Screenings</h2>
             <DatePickerContainer>
                 <label>Select Date: </label>
                 <DatePicker
@@ -61,36 +69,36 @@ function MovieScreenings() {
                 <tr>
                     <th>Branch</th>
                     <th>Address</th>
-                    <th>Screen</th>
-                    <th>Film</th>
+                    <th>Screening Room</th>
+                    <th>Movie Name</th>
                     <th>Start Time</th>
                     <th>Duration</th>
                     <th>End Time</th>
-                    <th>Seats</th>
-                    <th>Action</th>
+                    <th>Number of Seats</th>
+                    {/* <th>Hành Động</th> */}
                 </tr>
                 </thead>
                 <tbody>
                 {screeningsList.length > 0 ? (
                     screeningsList.map((show, index) => (
                         <tr key={index}>
-                            <td>{show.branch}</td>
-                            <td>{show.address}</td>
-                            <td>{show.screenName}</td>
-                            <td>{show.filmName}</td>
-                            <td>{show.startTime}</td>
+                            <td>{show.branch_id.branch_name}</td>
+                            <td>{show.branch_id.address}</td>
+                            <td>{show.screen.screen_name}</td>
+                            <td>{show.film_id.film_name}</td>
+                            <td>{format(new Date(show.start_time), 'HH:mm')}</td> {/* Định dạng giờ 24h */}
                             <td>{show.duration}</td>
-                            <td>{show.endTime}</td>
-                            <td>{show.emptySeat}/{show.totalSeat}</td>
-                            <td>
-                                <ActionButton onClick={() => handleEdit(show)}>Edit</ActionButton>
-                                <ActionButton delete onClick={() => handleDelete(show)}>Delete</ActionButton>
-                            </td>
+                            <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
+                            <td>{show.screen.total_seat}</td>
+                            {/* <td>
+                                <ActionButton onClick={() => handleEdit(show)}>Chỉnh Sửa</ActionButton>
+                                <ActionButton delete onClick={() => handleDelete(show)}>Xóa</ActionButton>
+                            </td> */}
                         </tr>
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="9">No screenings available for this date.</td>
+                        <td colSpan="9">Không có buổi chiếu nào cho ngày này.</td>
                     </tr>
                 )}
                 </tbody>
