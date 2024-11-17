@@ -1,9 +1,9 @@
 ﻿import React from 'react';
 import styled from 'styled-components';
-import Header from '../utils/User/Header.jsx';
-import Footer from '../utils/User/Footer.jsx';
+import Header from '../../utils/User/Header.jsx';
+import Footer from '../../utils/User/Footer.jsx';
 import {useParams} from 'react-router-dom';
-import {dataBookingSeat} from '../utils/data.jsx';
+import {dataBookingSeat} from '../../utils/data.jsx';
 
 const Container = styled.div`
     padding: 80px 0;

@@ -1,12 +1,30 @@
 ﻿// Header.jsx
 import styled from 'styled-components'
+import {useEffect, useState} from "react";
 
 // eslint-disable-next-line react/prop-types
 function Header({onLogout}) {
+    const [token, setToken] = useState(null);
+
+    useEffect(() => {
+        const tokenString = localStorage.getItem("token");
+        try {
+            const parsedToken = tokenString ? JSON.parse(tokenString) : null;
+            console.log("Parsed Token: ", parsedToken);
+            setToken(parsedToken);
+        } catch (error) {
+            console.error("Failed to parse token:", error);
+            setToken(null);
+        }
+    }, []);
+
     return (
         <HeaderContainer>
             <Title>Admin</Title>
-            <LogoutButton onClick={onLogout}>Logout</LogoutButton>
+            <RightItemWrapper>
+                <EmailCustom>{token?.user?.email}</EmailCustom>
+                <LogoutButton onClick={onLogout}>Logout</LogoutButton>
+            </RightItemWrapper>
         </HeaderContainer>
     )
 }
@@ -47,4 +65,14 @@ const LogoutButton = styled.button`
     &:hover {
         background-color: #c0392b; /* Darker shade on hover */
     }
+`
+
+const RightItemWrapper = styled.div`
+    display: flex;
+    align-items: center;
+`
+
+const EmailCustom = styled.span`
+    margin-right: 1rem;
+    font-weight: bold;
 `

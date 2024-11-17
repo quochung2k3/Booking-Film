@@ -3,7 +3,8 @@ import {Route, Routes, Navigate} from 'react-router-dom';
 import AuthTabs from './pages/AuthTabs.jsx';
 import Admin from './pages/Admin.jsx';
 import User from './pages/User.jsx';
-import SolveBooking from "./pages/SolveBooking.jsx";
+import SolveBooking from "./Components/User/SolveBooking.jsx";
+import BookingHistory from "./Components/User/BookingHistory.jsx";
 
 function App() {
     const [roleId, setRoleId] = useState(null);
@@ -20,7 +21,7 @@ function App() {
 
     const handleLogin = (role, token) => {
         localStorage.setItem('roleId', role);
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", JSON.stringify(token));
         setRoleId(role);
         setFakeToken(token);
     };
@@ -46,6 +47,10 @@ function App() {
             <Route
                 path="/user"
                 element={<User onLogout={handleLogout}/>}
+            />
+            <Route
+                path="/user/history"
+                element={<BookingHistory onLogout={handleLogout}/>}
             />
             <Route
                 path="/user/booking/:showTimeId"
