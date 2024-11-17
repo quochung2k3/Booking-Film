@@ -13,6 +13,8 @@ function AuthTabs({ onLogin }) {
     confirmPassword: "",
   });
   const [forgotPasswordData, setForgotPasswordData] = useState({ email: "" });
+  const [otpData, setOtpData] = useState({ email: "", otp: "", password: "" });
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
   const defaultAdmin = {
@@ -68,14 +70,46 @@ function AuthTabs({ onLogin }) {
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
-    const { email } = forgotPasswordData;
     try {
-      await axios.post("http://localhost:3000/api/v1/auth/forgot-password", {
-        email,
-      });
-      alert(`Password reset link sent to: ${email}`);
+      await axios.post("http://localhost:3000/api/v1/auth/send-otp", { email });
+      alert(`OTP đã được gửi tới: ${email}`);
+      setOtpData({ ...otpData, email });
     } catch (error) {
-      alert("Failed to send password reset link");
+      alert("Gửi OTP thất bại");
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    const { email, otp, password } = forgotPasswordData;
+    try {
+      await axios.post("http://localhost:3000/api/v1/auth/reset-password", {
+        email,
+        otp,
+        password,
+      });
+      alert("Đặt lại mật khẩu thành công");
+    } catch (error) {
+      alert("Đặt lại mật khẩu thất bại");
+    }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    const { otp, password } = otpData;
+    try {
+      await axios.post("http://localhost:3000/api/v1/auth/verify-otp", {
+        email: otpData.email,
+        otp,
+      });
+      await axios.post("http://localhost:3000/api/v1/auth/reset-password", {
+        email: otpData.email,
+        otp,
+        password,
+      });
+      alert("Đặt lại mật khẩu thành công");
+    } catch (error) {
+      alert("Đặt lại mật khẩu thất bại");
     }
   };
 
@@ -111,6 +145,16 @@ function AuthTabs({ onLogin }) {
           onClick={() => handleTabSwitch("forgotPassword")}
         >
           Forgot Password
+        </button>
+        <button
+          style={
+            activeTab === "otp"
+              ? { ...styles.tabButton, ...styles.activeTab }
+              : styles.tabButton
+          }
+          onClick={() => handleTabSwitch("otp")}
+        >
+          OTP
         </button>
       </div>
       {activeTab === "signIn" && (
@@ -205,18 +249,41 @@ function AuthTabs({ onLogin }) {
             <label style={styles.label}>Email:</label>
             <input
               type="email"
-              value={forgotPasswordData.email}
-              onChange={(e) =>
-                setForgotPasswordData({
-                  ...forgotPasswordData,
-                  email: e.target.value,
-                })
-              }
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
             />
           </div>
           <button type="submit" style={styles.button}>
             Send Reset Link
+          </button>
+        </form>
+      )}
+      {activeTab === "otp" && (
+        <form onSubmit={handleOtpSubmit} style={styles.form}>
+          <h2 style={styles.heading}>Nhập OTP</h2>
+          <div style={styles.inputContainer}>
+            <label style={styles.label}>OTP:</label>
+            <input
+              type="text"
+              value={otpData.otp}
+              onChange={(e) => setOtpData({ ...otpData, otp: e.target.value })}
+              style={styles.input}
+            />
+          </div>
+          <div style={styles.inputContainer}>
+            <label style={styles.label}>Mật khẩu mới:</label>
+            <input
+              type="password"
+              value={otpData.password}
+              onChange={(e) =>
+                setOtpData({ ...otpData, password: e.target.value })
+              }
+              style={styles.input}
+            />
+          </div>
+          <button type="submit" style={styles.button}>
+            Đổi mật khẩu
           </button>
         </form>
       )}
