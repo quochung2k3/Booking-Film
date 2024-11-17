@@ -26,6 +26,11 @@ function Navbar() {
                         Voucher
                     </StyledNavLink>
                 </NavItem>
+                <NavItem>
+                    <StyledNavLink to="/admin/user_manager" activeClassName="active">
+                        User
+                    </StyledNavLink>
+                </NavItem>
             </NavList>
         </NavContainer>
     )
