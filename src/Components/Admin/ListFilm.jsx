@@ -1,17 +1,19 @@
-﻿// MovieList.jsx
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import UpdateMovieModal from "../../modal/UpdateMovieModal.jsx";
+import Loading from "../../utils/Loading.jsx"; 
 
 function ListFilm() {
     const [movies, setMovies] = useState([]);
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [isCreateMode, setIsCreateMode] = useState(false);
+    const [loading, setLoading] = useState(false); 
 
     // Fetch movies from API
     useEffect(() => {
         const fetchMovies = async () => {
+            setLoading(true); 
             try {
                 const response = await axios.get("http://localhost:3000/api/v1/film/");
                 const apiMovies = response.data.map((movie) => ({
@@ -32,6 +34,8 @@ function ListFilm() {
                 setMovies(apiMovies);
             } catch (error) {
                 console.error("Error fetching movies:", error);
+            } finally {
+                setLoading(false); 
             }
         };
         fetchMovies();
@@ -77,23 +81,29 @@ function ListFilm() {
 
     return (
         <WrapperAll>
-            <Button onClick={handleCreateClick}>Create Movie</Button>
-            <TitleCustom>Movie List</TitleCustom>
-            <CardGrid>
-                {movies.map((movie) => (
-                    <Card key={movie.id} onClick={() => handleCardClick(movie)}>
-                        <Image src={movie.imageUrl} alt={movie.movieName} />
-                        <CardContent>
-                            <h3>{movie.movieName}</h3>
-                            <p><strong>Category:</strong> {movie.category}</p>
-                            <p><strong>Duration:</strong> {movie.duration}</p>
-                            <p><strong>Release Date:</strong> {movie.releaseDate}</p>
-                            <p><strong>Country:</strong> {movie.country}</p>
-                            <p><strong>Director:</strong> {movie.director}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </CardGrid>
+            {loading ? ( 
+                <Loading />
+            ) : (
+                <>
+                    <Button onClick={handleCreateClick}>Create Movie</Button>
+                    <TitleCustom>Movie List</TitleCustom>
+                    <CardGrid>
+                        {movies.map((movie) => (
+                            <Card key={movie.id} onClick={() => handleCardClick(movie)}>
+                                <Image src={movie.imageUrl} alt={movie.movieName} />
+                                <CardContent>
+                                    <h3>{movie.movieName}</h3>
+                                    <p><strong>Category:</strong> {movie.category}</p>
+                                    <p><strong>Duration:</strong> {movie.duration}</p>
+                                    <p><strong>Release Date:</strong> {movie.releaseDate}</p>
+                                    <p><strong>Country:</strong> {movie.country}</p>
+                                    <p><strong>Director:</strong> {movie.director}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </CardGrid>
+                </>
+            )}
             {selectedMovie && (
                 <UpdateMovieModal
                     movie={selectedMovie}

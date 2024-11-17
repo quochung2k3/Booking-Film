@@ -4,31 +4,36 @@ import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ScreeningModal from "../../modal/ScreeningModal.jsx";
-import axios from "axios"; // Để thực hiện gọi API
+import axios from "axios"; // For API calls
+import Loading from "../../utils/Loading.jsx"; 
 
 function MovieScreenings() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showModal, setShowModal] = useState(false);
     const [screeningsList, setScreeningsList] = useState([]);
+    const [loading, setLoading] = useState(false); 
 
-    // Lấy dữ liệu buổi chiếu từ API
+    // Fetch screenings from API
     useEffect(() => {
         const fetchScreenings = async () => {
+            setLoading(true); 
             try {
                 const response = await axios.get("http://localhost:3000/api/v1/showtime", {
                     params: {
-                        date: selectedDate.toISOString().split("T")[0] // Định dạng ngày theo kiểu YYYY-MM-DD
+                        date: selectedDate.toISOString().split("T")[0] // Format date as YYYY-MM-DD
                     }
                 });
                 setScreeningsList(response.data);
-                console.log("repose: ", response.data)
+                console.log("Response:", response.data);
             } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu buổi chiếu phim:", error);
+                console.error("Error fetching movie screenings data:", error);
+            } finally {
+                setLoading(false); 
             }
         };
 
         fetchScreenings();
-    }, [selectedDate]); // Lấy lại dữ liệu khi selectedDate thay đổi
+    }, [selectedDate]); // Refetch data when selectedDate changes
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -43,13 +48,13 @@ function MovieScreenings() {
     };
 
     const handleEdit = (show) => {
-        console.log("Chỉnh sửa", show);
-        // Logic chỉnh sửa buổi chiếu
+        console.log("Edit:", show);
+        // Logic to edit the screening
     };
 
     const handleDelete = (show) => {
-        console.log("Xóa", show);
-        // Logic xóa buổi chiếu
+        console.log("Delete:", show);
+        // Logic to delete the screening
     };
 
     return (
@@ -64,53 +69,53 @@ function MovieScreenings() {
                     dateFormat="yyyy/MM/dd"
                 />
             </DatePickerContainer>
-            <ScreeningsTable>
-                <thead>
-                <tr>
-                    <th>Branch</th>
-                    <th>Address</th>
-                    <th>Screening Room</th>
-                    <th>Movie Name</th>
-                    <th>Start Time</th>
-                    <th>Duration</th>
-                    <th>End Time</th>
-                    <th>Number of Seats</th>
-                    {/* <th>Hành Động</th> */}
-                </tr>
-                </thead>
-                <tbody>
-                {screeningsList.length > 0 ? (
-                    screeningsList.map((show, index) => (
-                        <tr key={index}>
-                            <td>{show.branch_id.branch_name}</td>
-                            <td>{show.branch_id.address}</td>
-                            <td>{show.screen.screen_name}</td>
-                            <td>{show.film_id.film_name}</td>
-                            <td>{format(new Date(show.start_time), 'HH:mm')}</td> {/* Định dạng giờ 24h */}
-                            <td>{show.duration}</td>
-                            <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
-                            <td>{show.screen.total_seat}</td>
-                            {/* <td>
-                                <ActionButton onClick={() => handleEdit(show)}>Chỉnh Sửa</ActionButton>
-                                <ActionButton delete onClick={() => handleDelete(show)}>Xóa</ActionButton>
-                            </td> */}
+            {loading ? ( 
+                <Loading />
+            ) : (
+                <ScreeningsTable>
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th>Address</th>
+                            <th>Screening Room</th>
+                            <th>Movie Name</th>
+                            <th>Start Time</th>
+                            <th>Duration</th>
+                            <th>End Time</th>
+                            <th>Number of Seats</th>
                         </tr>
-                    ))
-                ) : (
-                    <tr>
-                        <td colSpan="9">Không có buổi chiếu nào cho ngày này.</td>
-                    </tr>
-                )}
-                </tbody>
-            </ScreeningsTable>
+                    </thead>
+                    <tbody>
+                        {screeningsList.length > 0 ? (
+                            screeningsList.map((show, index) => (
+                                <tr key={index}>
+                                    <td>{show.branch_id.branch_name}</td>
+                                    <td>{show.branch_id.address}</td>
+                                    <td>{show.screen.screen_name}</td>
+                                    <td>{show.film_id.film_name}</td>
+                                    <td>{format(new Date(show.start_time), 'HH:mm')}</td>
+                                    <td>{show.duration}</td>
+                                    <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
+                                    <td>{show.screen.total_seat}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="9">No screenings available for this date.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </ScreeningsTable>
+            )}
             {showModal && (
-                <ScreeningModal onClose={handleCloseModal}/>
+                <ScreeningModal onClose={handleCloseModal} />
             )}
         </Container>
     );
 }
 
 export default MovieScreenings;
+
 
 // Styled components
 const Container = styled.div`
