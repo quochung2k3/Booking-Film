@@ -293,6 +293,37 @@ const LegendColor = styled.div`
     border-radius: 5px;
 `;
 
+const TotalPriceContainer = styled.div`
+    text-align: left;
+    margin: 10px 0;
+    padding: 15px;
+    width: 90%;
+    background-color: #3a3a3c;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+
+    strong {
+        color: #f1c40f;
+    }
+
+    .selected-seats {
+        color: #42e0f5;
+        font-weight: bold;
+    }
+    .total-amount {
+        color: #4caf50;
+        font-weight: bold;
+        font-size: 18px;
+    }
+`;
+
 const generateSeats = (bookedSeats) => {
     const rows = 'ABCDEFGHIJ'.split(''); 
     const seatsPerRow = 12;
@@ -305,7 +336,7 @@ const generateSeats = (bookedSeats) => {
             rowSeats.push({
                 seatId,
                 status: bookedSeats.includes(seatId) ? 'booked' : 'available',
-                price: row >= 'D' && row <= 'G' ? 100 : 50, 
+                price: row >= 'D' && row <= 'G' ? 75000 : 50000, 
                 type: row >= 'D' && row <= 'G' ? 'vip' : 'regular',
             });
         }
@@ -526,7 +557,6 @@ function SolveBooking({ onLogout }) {
                                 
                                 ))}
                             </Row>
-                        
                         ))}
                     </SeatMap>
                     <Legend>
@@ -584,6 +614,11 @@ function SolveBooking({ onLogout }) {
                             </DiscountWrapper>
                         </>
                     )}
+                    <TotalPriceContainer>
+                        <p>
+                            <strong>Tổng số tiền:</strong> <span className="total-amount">{totalPrice.toLocaleString()} VND</span>
+                        </p>
+                    </TotalPriceContainer>
                     <MoMoButton onClick={handlePaymentMoMo} disabled={isPaymentLoading || selectedSeats.length === 0}>
                         {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
                         <img src="/images/momo.png" alt="MoMo" width="24" height="24" />
@@ -592,16 +627,6 @@ function SolveBooking({ onLogout }) {
                         {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
                         <img src="/images/zalopay.png" alt="ZaloPay" width="24" height="24" />
                     </ZaloButton>
-
-                    <div style={{ textAlign: "left", margin: "6px", width: "100%", paddingLeft: "2rem" }}>
-                        <p>
-                            <strong>Ghế đã chọn: </strong>
-                            {selectedSeats.length > 0 ? selectedSeats.join(", ") : "[]"}
-                        </p>
-                        <p>
-                            <strong>Tổng số tiền:</strong> {totalPrice.toLocaleString()} VND
-                        </p>
-                    </div>
                 </DetailsContainer>
             </BodyWrapper>
             <Footer />
