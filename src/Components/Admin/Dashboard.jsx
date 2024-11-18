@@ -157,7 +157,7 @@ function prepareChartData(groupedData) {
     const months = Object.keys(groupedData); // Các tháng
     const branches = Array.from(
         new Set(
-            months.flatMap((month) => Object.keys(groupedData[month])) // Lấy tất cả branch_name
+            months.flatMap((month) => Object.keys(groupedData[month]))
         )
     );
 
@@ -211,6 +211,8 @@ function prepareLineChartData(groupedData) {
     };
 }
 
+const apiGetPayment = import.meta.env.VITE_API_PAYMENT_URL
+
 function Dashboard() {
     const [apiData, setApiData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -220,7 +222,7 @@ function Dashboard() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:3000/api/v1/payment/", {
+                const response = await axios.get(apiGetPayment, {
                     headers: {"Content-Type": "application/json"},
                 });
                 setApiData(response.data);

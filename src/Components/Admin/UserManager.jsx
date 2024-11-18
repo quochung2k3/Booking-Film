@@ -187,11 +187,6 @@ const Pagination = styled.div`
 const TextCustom = styled.text`
     margin-left: 6px;
 `
-
-const TextNameCustom = styled.text`
-    margin-left: 20px;
-`
-
 const EditIcon = styled.div`
     display: inline;
     cursor: pointer;
@@ -201,15 +196,9 @@ const DeleteIcon = styled.div`
     display: inline;
     cursor: pointer;
 `
-
-const ContentWrapper = styled.div`
-    display: flex;
-    align-items: center;
-`
-
 const PAGE_SIZE = 50
-const getUserAPI = 'api/v1/user'
-const updateUserAPI = 'api/v1/auth/signup/'
+const getUserAPI = import.meta.env.VITE_API_USER_URL
+const updateUserAPI = import.meta.env.VITE_API_AUTH_URL
 
 const UserManager = () => {
     const [users, setUsers] = useState([])

@@ -50,6 +50,8 @@ const TableRow = styled.tr`
     }
 `;
 
+const apiGetPayment = import.meta.env.VITE_API_PAYMENT_URL
+
 // eslint-disable-next-line react/prop-types
 function BookingHistory({onLogout}) {
     const [token, setToken] = useState(null);
@@ -73,7 +75,7 @@ function BookingHistory({onLogout}) {
         if (token?.user?._id) {
             setLoading(true)
             axios
-                .get("http://localhost:3000/api/v1/payment/", {
+                .get(apiGetPayment, {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token.access_token}`,

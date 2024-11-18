@@ -1,10 +1,12 @@
-﻿import { useState, useEffect } from "react";
-import { format, addMinutes } from 'date-fns';
+﻿import {useState, useEffect} from "react";
+import {format, addMinutes} from 'date-fns';
 import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ScreeningModal from "../../modal/ScreeningModal.jsx";
 import axios from "axios"; // Để thực hiện gọi API
+
+const apiGetShowTime = import.meta.env.VITE_API_SHOW_TIME_URL
 
 function MovieScreenings() {
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -15,9 +17,9 @@ function MovieScreenings() {
     useEffect(() => {
         const fetchScreenings = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/api/v1/showtime", {
+                const response = await axios.get(apiGetShowTime, {
                     params: {
-                        date: selectedDate.toISOString().split("T")[0] // Định dạng ngày theo kiểu YYYY-MM-DD
+                        date: selectedDate.toISOString().split("T")[0]
                     }
                 });
                 setScreeningsList(response.data);
@@ -86,7 +88,8 @@ function MovieScreenings() {
                             <td>{show.branch_id.address}</td>
                             <td>{show.screen.screen_name}</td>
                             <td>{show.film_id.film_name}</td>
-                            <td>{format(new Date(show.start_time), 'HH:mm')}</td> {/* Định dạng giờ 24h */}
+                            <td>{format(new Date(show.start_time), 'HH:mm')}</td>
+                            {/* Định dạng giờ 24h */}
                             <td>{show.duration}</td>
                             <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
                             <td>{show.screen.total_seat}</td>

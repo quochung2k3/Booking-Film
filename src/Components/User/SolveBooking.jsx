@@ -221,6 +221,8 @@ const generateSeats = (bookedSeats) => {
     return seats;
 };
 
+
+
 // eslint-disable-next-line react/prop-types
 function SolveBooking({onLogout}) {
     const {showTimeId} = useParams();

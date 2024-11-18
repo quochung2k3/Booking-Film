@@ -1,8 +1,10 @@
 ﻿// MovieList.jsx
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
 import axios from "axios";
 import styled from "styled-components";
 import UpdateMovieModal from "../../modal/UpdateMovieModal.jsx";
+
+const apiGetFilm = import.meta.env.VITE_API_FILM_URL
 
 function ListFilm() {
     const [movies, setMovies] = useState([]);
@@ -13,7 +15,7 @@ function ListFilm() {
     useEffect(() => {
         const fetchMovies = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/api/v1/film/");
+                const response = await axios.get(apiGetFilm);
                 const apiMovies = response.data.map((movie) => ({
                     id: movie._id,
                     movieName: movie.film_name,
@@ -82,7 +84,7 @@ function ListFilm() {
             <CardGrid>
                 {movies.map((movie) => (
                     <Card key={movie.id} onClick={() => handleCardClick(movie)}>
-                        <Image src={movie.imageUrl} alt={movie.movieName} />
+                        <Image src={movie.imageUrl} alt={movie.movieName}/>
                         <CardContent>
                             <h3>{movie.movieName}</h3>
                             <p><strong>Category:</strong> {movie.category}</p>

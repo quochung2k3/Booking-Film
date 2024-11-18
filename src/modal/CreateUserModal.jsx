@@ -92,7 +92,7 @@ const Button = styled.button`
 //   margin-left: 6px;
 // `
 
-let getUserAPI = 'api/v1/auth/signup/'
+let getUserAPI = import.meta.env.VITE_API_AUTH_URL
 
 // eslint-disable-next-line react/prop-types
 const CreateUserModal = ({isOpen, onClose, initialData = null, onUserCreated, method}) => {

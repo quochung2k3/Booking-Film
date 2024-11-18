@@ -2,6 +2,12 @@
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
+const apiSignUpUrl = import.meta.env.VITE_API_AUTH_URL
+const apiLoginUrl = import.meta.env.VITE_API_AUTH_LOGIN_URL
+const apiSendOTPUrl = import.meta.env.VITE_API_AUTH_SEND_OTP_URL
+const apiResetPassUrl = import.meta.env.VITE_API_AUTH_RESET_PASS_URL
+const apiVerifyOTPUrl = import.meta.env.VITE_API_AUTH_VERIFY_OTP_URL
+
 // eslint-disable-next-line react/prop-types
 function AuthTabs({onLogin}) {
     const [activeTab, setActiveTab] = useState("signIn");
@@ -26,7 +32,7 @@ function AuthTabs({onLogin}) {
         const {username, password} = signInData;
         try {
             const response = await axios.post(
-                "http://localhost:3000/api/v1/auth/login",
+                apiLoginUrl,
                 {email: username, password}
             );
             console.log(response.data);
@@ -50,7 +56,7 @@ function AuthTabs({onLogin}) {
             return;
         }
         try {
-            await axios.post("http://localhost:3000/api/v1/auth/signup", {
+            await axios.post(apiSignUpUrl, {
                 email: username,
                 password: password,
                 full_name: fullName,
@@ -70,7 +76,7 @@ function AuthTabs({onLogin}) {
     const handleForgotPasswordSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post("http://localhost:3000/api/v1/auth/send-otp", {email});
+            await axios.post(apiSendOTPUrl, {email});
             alert(`OTP đã được gửi tới: ${email}`);
             setOtpData({...otpData, email});
         } catch (error) {
@@ -82,7 +88,7 @@ function AuthTabs({onLogin}) {
         e.preventDefault();
         const {email, otp, password} = forgotPasswordData;
         try {
-            await axios.post("http://localhost:3000/api/v1/auth/reset-password", {
+            await axios.post(apiResetPassUrl, {
                 email,
                 otp,
                 password,
@@ -97,11 +103,11 @@ function AuthTabs({onLogin}) {
         e.preventDefault();
         const {otp, password} = otpData;
         try {
-            await axios.post("http://localhost:3000/api/v1/auth/verify-otp", {
+            await axios.post(apiVerifyOTPUrl, {
                 email: otpData.email,
                 otp,
             });
-            await axios.post("http://localhost:3000/api/v1/auth/reset-password", {
+            await axios.post(apiResetPassUrl, {
                 email: otpData.email,
                 otp,
                 password,

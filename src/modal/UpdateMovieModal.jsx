@@ -2,14 +2,16 @@
 import {useState, useEffect} from "react";
 import styled from "styled-components";
 
+const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
+
 // eslint-disable-next-line react/prop-types
 function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     let title = 'Create Movie';
-    if(movie.movieName)
-    {
+    // eslint-disable-next-line react/prop-types
+    if (movie.movieName) {
         title = 'Details'
     }
 
@@ -40,24 +42,24 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
     const handleSubmit = async () => {
         let method = 'POST';
-        let url = 'http://localhost:3000/api/v1/film/';
-    
+        let url = apiFilmUrl;
+
         // Nếu đang cập nhật phim hiện tại, sử dụng PUT thay vì POST
         if (title === 'Details') {
             method = 'PUT';
-            url = `http://localhost:3000/api/v1/film/${movieData.id}`;
+            url = `${apiFilmUrl}${movieData.id}`;
         }
-    
+
         try {
             const formData = new FormData();
-    
+
             // Thêm các trường dữ liệu khác vào FormData
             for (const key in movieData) {
                 if (movieData[key]) {
                     formData.append(key, movieData[key]);
                 }
             }
-    
+
             // Kiểm tra nếu hình ảnh đã được chọn
             if (selectedImage) {
                 formData.append("image", selectedImage);
@@ -65,21 +67,21 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                 alert("Vui lòng chọn hình ảnh trước khi gửi.");
                 return;
             }
-    
+
             // Gỡ lỗi FormData để xem nội dung của nó
             for (const [key, value] of formData.entries()) {
                 console.log(`${key}:`, value);
             }
-    
+
             const response = await fetch(url, {
                 method: method,
                 body: formData,
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim`);
             }
-    
+
             const result = await response.json();
             console.log(`Phim ${method === 'POST' ? 'được tạo' : 'được cập nhật'} thành công!`, result);
             onSubmit(result); // Thông báo cho component cha với kết quả
@@ -89,8 +91,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             alert("Có lỗi xảy ra. Vui lòng thử lại.");
         }
     };
-    
-    
+
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
