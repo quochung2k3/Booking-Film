@@ -23,7 +23,7 @@ const BodyWrapper = styled.div`
 
 const Table = styled.table`
     border-collapse: collapse;
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
 `;
 
@@ -81,11 +81,11 @@ function BookingHistory({onLogout}) {
                 })
                 .then((response) => {
                     const data = response.data;
-                    const filteredData = data.filter(
-                        (item) => item.user_id?._id === token.user._id
-                    );
+                    const filteredData = data
+                        .filter((item) => item.user_id?._id === token.user._id)
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     setBookingHistory(filteredData);
-                    setLoading(false)
+                    setLoading(false);
                 })
                 .catch((error) => {
                     console.error("Error fetching payment data:", error);
@@ -105,12 +105,15 @@ function BookingHistory({onLogout}) {
                         <Table>
                             <thead>
                             <tr>
-                                <Th>Show Time ID</Th>
+                                <Th>Film Name</Th>
+                                <Th>Branch Name</Th>
+                                <Th>Screen Name</Th>
                                 <Th>List Seat</Th>
                                 <Th>Total Price</Th>
                                 <Th>Discount</Th>
                                 <Th>Paid Amount</Th>
-                                <Th>Created At</Th>
+                                <Th>Going Date Time</Th>
+                                <Th>Payment Time</Th>
                             </tr>
                             </thead>
                             <tbody>
@@ -118,11 +121,18 @@ function BookingHistory({onLogout}) {
                                 const calculatedDiscount = (booking.total_price * booking.discount) / 100;
                                 return (
                                     <TableRow key={index}>
-                                        <Td>{booking.show_time_id._id}</Td>
+                                        <Td>{booking?.show_time_id?.film_id?.film_name || ""}</Td>
+                                        <Td>{booking?.show_time_id?.branch_id?.branch_name || ""}</Td>
+                                        <Td>
+                                            {booking?.show_time_id?.branch_id?.list_screen.find(
+                                                (screen) => screen._id === booking?.show_time_id?.screen_id
+                                            )?.screen_name || ""}
+                                        </Td>
                                         <Td>{booking.list_seat.join(", ")}</Td>
                                         <Td>{booking.total_price.toLocaleString()} VND</Td>
                                         <Td>{calculatedDiscount.toLocaleString()} VND</Td>
                                         <Td>{booking.paid_amount.toLocaleString()} VND</Td>
+                                        <Td>{new Date(booking.show_time_id?.start_time).toLocaleString()}</Td>
                                         <Td>{new Date(booking.created_at).toLocaleString()}</Td>
                                     </TableRow>
                                 );

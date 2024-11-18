@@ -327,7 +327,7 @@ const styles = {
         padding: "2rem",
         borderRadius: "8px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        width: "300px",
+        width: "360px",
         textAlign: "center",
     },
     heading: {
