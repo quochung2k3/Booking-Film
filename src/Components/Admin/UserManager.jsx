@@ -391,11 +391,7 @@ const UserManager = () => {
                                 <tr key={user.id}>
                                     <td>{(currentPage - 1) * PAGE_SIZE + index + 1}</td>
                                     <td>{user.full_name}</td>
-                                    <td>
-                                        <ContentWrapper>
-                                            <TextNameCustom>{user.name}</TextNameCustom>
-                                        </ContentWrapper>
-                                    </td>
+                                    <td>{user.name}</td>
                                     <td>{user.role}</td>
                                     <td>{user.status}</td>
                                     <td className="actions">
