@@ -10,7 +10,7 @@ const ModalContainer = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,21 +18,22 @@ const ModalContainer = styled.div`
 `;
 
 const ModalContent = styled.div`
-    background: white;
-    padding: 20px 40px;
-    border-radius: 10px;
+    background: #2c2c2c;
+    padding: 30px 50px;
+    border-radius: 20px;
     width: 80%;
-    max-width: 800px;
+    max-width: 900px;
     text-align: left;
     position: relative;
-    min-height: 20vh;
+    min-height: 30vh;
     max-height: 80vh;
     overflow-y: auto;
+    color: #fff;
 `;
 
 const CloseButton = styled.button`
     background-color: transparent;
-    color: #333;
+    color: #fff;
     border: none;
     font-size: 2rem;
     padding: 0 10px;
@@ -40,61 +41,84 @@ const CloseButton = styled.button`
     top: 10px;
     right: 10px;
     cursor: pointer;
+    transition: color 0.3s;
+
+    &:hover {
+        color: #e50914;
+    }
 `;
 
 const Title = styled.h2`
-    font-size: 18px;
+    font-size: 24px;
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    color: #ffcd32;
 `;
 
 const BranchSelect = styled.select`
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 15px;
+    margin-bottom: 30px;
     font-size: 16px;
+    border-radius: 10px;
+    border: 2px solid #555;
+    background-color: #1b1b1b;
+    color: #fff;
+
+    &:focus {
+        border-color: #e50914;
+        outline: none;
+    }
 `;
 
 const DateTabs = styled.div`
     display: flex;
     justify-content: center;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #555;
 `;
 
 const DateTab = styled.div`
-    margin: 0 10px;
-    padding: 10px 15px;
+    margin: 0 15px;
+    padding: 15px 20px;
     cursor: pointer;
     font-weight: bold;
-    color: ${(props) => (props.active ? '#007bff' : '#000')};
-    border-bottom: ${(props) => (props.active ? '3px solid #007bff' : 'none')};
+    color: ${(props) => (props.active ? '#ffcd32' : '#aaa')};
+    border-bottom: ${(props) => (props.active ? '4px solid #ffcd32' : 'none')};
     transition: color 0.3s, border-bottom 0.3s;
 
     &:hover {
-        color: #007bff;
+        color: #ffcd32;
     }
 `;
 
 const ShowTimeContainer = styled.div`
-    margin-top: 20px;
+    margin-top: 30px;
     text-align: center;
 `;
 
 const ShowTimeGroup = styled.div`
     margin-bottom: 3rem;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2rem;
 `;
 
 const StyledShowTime = styled.div`
     position: relative;
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
+    background-color: #333;
+    padding: 15px;
+    border-radius: 10px;
     margin-bottom: 10px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+
+    &:hover {
+        transform: scale(1.05);
+        background-color: #444;
+    }
 `;
 
 const StyledSpan = styled.span`
@@ -102,14 +126,15 @@ const StyledSpan = styled.span`
     top: 110%;
     right: 0;
     left: 0;
-    font-size: 12px;
-    color: #666;
+    font-size: 14px;
+    color: #bbb;
     cursor: default;
 `;
 
 const TimeSlot = styled.div`
     padding: 0.5rem 1rem;
     font-weight: bold;
+    color: #ffcd32;
 `;
 
 function BookingModal({ movieTitle, movieId, onClose }) {
@@ -121,18 +146,12 @@ function BookingModal({ movieTitle, movieId, onClose }) {
     useEffect(() => {
         const fetchShowTimes = async () => {
             try {
-                console.log(`Fetching showtimes for movieId: ${movieId}`);
                 const response = await axios.get(`http://localhost:3000/api/v1/showtime/${movieId}/film`);
                 const data = response.data; 
-                
-                console.log('API Response:', data); // Log dữ liệu API trả về
-                
-                setShowTimes(data); // Lưu toàn bộ suất chiếu
+                setShowTimes(data); 
     
                 if (data.length > 0) {
                     const firstBranch = data[0].branch_id?._id || '';
-                    console.log('First Branch:', firstBranch); // Log rạp đầu tiên
-    
                     setSelectedBranch(firstBranch);
     
                     const firstDate = data
@@ -140,7 +159,6 @@ function BookingModal({ movieTitle, movieId, onClose }) {
                         .map((showTime) => new Date(showTime.start_time))
                         .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
     
-                    console.log('First Date:', firstDate); // Log ngày chiếu đầu tiên
                     setSelectedDate(firstDate);
                 }
             } catch (error) {
@@ -151,27 +169,13 @@ function BookingModal({ movieTitle, movieId, onClose }) {
         fetchShowTimes();
     }, [movieId]);
     
-    
-
     const uniqueBranches = Array.from(
         new Map(
             showTimes
-                .filter((showTime) => {
-                    const isValid = showTime.branch_id && showTime.branch_id.branch_name;
-                    if (!isValid) {
-                        console.warn('Invalid showTime detected:', showTime); // Log nếu dữ liệu không hợp lệ
-                    }
-                    return isValid;
-                })
+                .filter((showTime) => showTime.branch_id && showTime.branch_id.branch_name)
                 .map((showTime) => [showTime.branch_id._id, showTime.branch_id])
         ).values()
     );
-    
-    console.log('Unique Branches:', uniqueBranches); // Log danh sách rạp
-    
-    
-    console.log(showTimes); // Kiểm tra dữ liệu từ API
-    console.log(uniqueBranches); // Kiểm tra danh sách rạp
 
     const filteredShowTimes = showTimes.filter(
         (showTime) => showTime.branch_id._id === selectedBranch
@@ -185,9 +189,6 @@ function BookingModal({ movieTitle, movieId, onClose }) {
         acc[date].push(showTime);
         return acc;
     }, {});
-    
-    console.log('Grouped ShowTimes:', groupedShowTimes); // Log nhóm suất chiếu theo ngày
-    
 
     const handleBranchChange = (event) => {
         const newBranchId = event.target.value;
@@ -206,20 +207,18 @@ function BookingModal({ movieTitle, movieId, onClose }) {
     };
 
     const handleTimeSlotClick = (showTime) => {
-        const filmId = showTime.film_id._id; // Lấy `filmId` từ showTime
-        const branchName = showTime.branch_id.branch_name; // Lấy tên rạp từ showTime
+        const filmId = showTime.film_id._id;
+        const branchName = showTime.branch_id.branch_name;
     
-        // Gọi API để lấy thông tin phim
         axios
             .get(`http://localhost:3000/api/v1/film/${filmId}`)
             .then((filmResponse) => {
                 const filmDetails = filmResponse.data;
     
-                // Truyền dữ liệu sang SolveBooking
                 navigate(`/user/booking/${showTime._id}`, {
                     state: {
-                        showTimeDetails: showTime, // Chi tiết suất chiếu
-                        filmDetails: filmDetails, // Chi tiết phim
+                        showTimeDetails: showTime,
+                        filmDetails: filmDetails,
                     },
                 });
             })
@@ -227,7 +226,6 @@ function BookingModal({ movieTitle, movieId, onClose }) {
                 console.error("Error fetching film details:", error);
             });
     };
-    
 
     const handleOutsideClick = (event) => {
         if (event.target === event.currentTarget) {
@@ -242,19 +240,7 @@ function BookingModal({ movieTitle, movieId, onClose }) {
                 <Title>LỊCH CHIẾU - {movieTitle}</Title>
                 <BranchSelect
                     value={selectedBranch}
-                    onChange={(event) => {
-                        const newBranchId = event.target.value;
-                        console.log('Selected Branch ID:', newBranchId); // Log rạp được chọn
-                        setSelectedBranch(newBranchId);
-
-                        const newFirstDate = showTimes
-                            .filter((showTime) => showTime.branch_id?._id === newBranchId)
-                            .map((showTime) => new Date(showTime.start_time))
-                            .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
-
-                        console.log('New First Date:', newFirstDate); // Log ngày chiếu đầu tiên sau khi đổi rạp
-                        setSelectedDate(newFirstDate);
-                    }}
+                    onChange={handleBranchChange}
                 >
                     <option value="">Chọn rạp</option>
                     {uniqueBranches.map((branch) => (

@@ -1,7 +1,7 @@
 ﻿import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios';
 
-// eslint-disable-next-line react/prop-types
 function AuthTabs({onLogin}) {
     const [activeTab, setActiveTab] = useState('signIn');
     const [signInData, setSignInData] = useState({username: '', password: ''});
@@ -13,21 +13,26 @@ function AuthTabs({onLogin}) {
         setActiveTab(tab);
     };
 
-    const handleSignInSubmit = (e) => {
+    const handleSignInSubmit = async (e) => {
         e.preventDefault();
-        const {username, password} = signInData;
-        if (username === 'admin' && password === 'admin') {
-            const fakeToken = 'fake-token-for-admin';
-            onLogin(1, fakeToken);
-            navigate('/');
-        } else if (username === 'user' && password === 'user') {
-            const fakeToken = 'fake-token-for-user';
-            onLogin(2, fakeToken);
-            navigate('/');
-        } else {
-            alert('Invalid credentials');
+        const { username, password } = signInData;
+    
+        try {
+            const response = await axios.post('http://localhost:3000/api/v1/auth/login', {
+                email: username, 
+                password,
+            });
+                const { token, user } = response.data;
+            localStorage.setItem('authToken', token);
+            console.log('Đăng nhập thành công:', user);
+                onLogin(user._id, token);
+                navigate('/');
+        } catch (error) {
+            console.error('Đăng nhập thất bại:', error.response?.data || error.message);
+            alert('Đăng nhập thất bại! Vui lòng kiểm tra thông tin đăng nhập.');
         }
     };
+    
 
     const handleSignUpSubmit = (e) => {
         e.preventDefault();
