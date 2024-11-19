@@ -13,7 +13,6 @@ const LoadingOverlay = styled.div`
     z-index: 10001;
 `
 
-// SVG loader with circles
 const Loader = styled.svg`
     max-width: 15rem;
     width: 100%;

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { useLocation } from 'react-router-dom';
+import {useLocation} from 'react-router-dom';
 
-// Styled components
 const Container = styled.div`
     padding: 60px;
     text-align: center;
@@ -39,6 +38,7 @@ const TransactionDetails = styled.div`
 const DetailItem = styled.p`
     font-size: 20px;
     margin: 15px 0;
+
     strong {
         color: #007bff;
         font-weight: 600;
@@ -78,7 +78,6 @@ const TransactionStatus = () => {
     });
 
     useEffect(() => {
-        // Hàm phân tích URL
         const parseTransactionStatus = () => {
             try {
                 const params = new URLSearchParams(location.search);
@@ -119,7 +118,8 @@ const TransactionStatus = () => {
             {transactionStatus.success && transactionStatus.data && (
                 <TransactionDetails>
                     <DetailItem><strong>Show Time ID:</strong> {transactionStatus.data?.show_time_id}</DetailItem>
-                    <DetailItem><strong>Danh sách ghế:</strong> {transactionStatus.data?.list_seat?.join(", ")}</DetailItem>
+                    <DetailItem><strong>Danh sách ghế:</strong> {transactionStatus.data?.list_seat?.join(", ")}
+                    </DetailItem>
                     <DetailItem><strong>Tổng giá:</strong> {transactionStatus.data?.total_price} VND</DetailItem>
                     <DetailItem><strong>Giảm giá:</strong> {transactionStatus.data?.discount}%</DetailItem>
                     <DetailItem><strong>Đã thanh toán:</strong> {transactionStatus.data?.paid_amount} VND</DetailItem>

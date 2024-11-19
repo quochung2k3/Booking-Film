@@ -2,7 +2,6 @@
 import styled from "styled-components";
 import axios from 'axios';
 import Loading from "../../utils/Loading.jsx";
-// import {FaFileExport} from 'react-icons/fa'
 import {IoMdPersonAdd} from 'react-icons/io'
 import {CiEdit} from 'react-icons/ci'
 import {MdDelete} from 'react-icons/md'
@@ -106,23 +105,6 @@ const StyledTable = styled.table`
         font-size: 19px;
     }
 
-    .status {
-        font-size: 30px;
-        line-height: 10px;
-    }
-
-    .text-success {
-        color: #10c469;
-    }
-
-    .text-danger {
-        color: #ff5b5b;
-    }
-
-    .text-warning {
-        color: #ffc107;
-    }
-
     .actions i {
         margin-right: 10px;
         cursor: pointer;
@@ -131,12 +113,6 @@ const StyledTable = styled.table`
 
     .actions i:hover {
         color: #2196f3;
-    }
-
-    .avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
     }
 `
 

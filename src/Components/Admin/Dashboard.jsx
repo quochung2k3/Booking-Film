@@ -179,7 +179,7 @@ function groupDataByMonth(data) {
     const groupedData = {};
 
     data.forEach((item) => {
-        const month = new Date(item.created_at).toISOString().slice(0, 7); // YYYY-MM format
+        const month = new Date(item.created_at).toISOString().slice(0, 7);
         const paidAmount = item.paid_amount || 0;
 
         if (!groupedData[month]) {
@@ -238,7 +238,6 @@ function Dashboard() {
         fetchData();
     }, []);
 
-    // Lọc dữ liệu theo năm
     const filteredData = useMemo(() => {
         return apiData.filter((item) =>
             new Date(item.created_at).getFullYear().toString() === selectedYear

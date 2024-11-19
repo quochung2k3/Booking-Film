@@ -1,5 +1,4 @@
-﻿// MovieList.jsx
-import {useState, useEffect} from "react";
+﻿import {useState, useEffect} from "react";
 import axios from "axios";
 import styled from "styled-components";
 import UpdateMovieModal from "../../modal/UpdateMovieModal.jsx";
@@ -11,7 +10,6 @@ function ListFilm() {
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [isCreateMode, setIsCreateMode] = useState(false);
 
-    // Fetch movies from API
     useEffect(() => {
         const fetchMovies = async () => {
             try {
@@ -41,7 +39,7 @@ function ListFilm() {
 
     const handleCardClick = (movie) => {
         setSelectedMovie(movie);
-        setIsCreateMode(false); // Open in update mode
+        setIsCreateMode(false);
     };
 
     const handleCreateClick = () => {
@@ -58,7 +56,7 @@ function ListFilm() {
             listActor: "",
             imageUrl: ""
         });
-        setIsCreateMode(true); // Open in create mode
+        setIsCreateMode(true);
     };
 
     const handleCloseModal = () => {
@@ -109,7 +107,6 @@ function ListFilm() {
 
 export default ListFilm;
 
-// Styled components
 const WrapperAll = styled.div`
     position: absolute;
     top: 10%;

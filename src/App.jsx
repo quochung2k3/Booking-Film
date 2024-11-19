@@ -69,7 +69,6 @@ function App() {
                 }
             />
             <Route path="/transaction-status" element={<TransactionStatus/>}/>
-            {/* Các route khác */}
             <Route path="*" element={<Navigate to="/"/>}/>
         </Routes>
     );

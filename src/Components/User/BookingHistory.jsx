@@ -58,7 +58,6 @@ function BookingHistory({onLogout}) {
     const [bookingHistory, setBookingHistory] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Fetch token from localStorage
     useEffect(() => {
         const tokenString = localStorage.getItem("token");
         try {

@@ -1,5 +1,4 @@
-﻿// Navbar.jsx
-import {NavLink} from 'react-router-dom'
+﻿import {NavLink} from 'react-router-dom'
 import styled from 'styled-components'
 
 function Navbar() {
@@ -38,7 +37,6 @@ function Navbar() {
 
 export default Navbar
 
-// Styled components
 const NavContainer = styled.nav`
     position: fixed;
     top: 60px;

@@ -1,6 +1,6 @@
 ﻿import styled from 'styled-components';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 
 // Styled components giữ nguyên
@@ -137,7 +137,11 @@ const TimeSlot = styled.div`
     color: #ffcd32;
 `;
 
-function BookingModal({ movieTitle, movieId, onClose }) {
+const apiShowTimeUrl = import.meta.env.VITE_API_SHOW_TIME_URL
+const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
+
+// eslint-disable-next-line react/prop-types
+function BookingModal({movieTitle, movieId, onClose}) {
     const navigate = useNavigate();
     const [showTimes, setShowTimes] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState('');
@@ -146,29 +150,29 @@ function BookingModal({ movieTitle, movieId, onClose }) {
     useEffect(() => {
         const fetchShowTimes = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/api/v1/showtime/${movieId}/film`);
-                const data = response.data; 
-                setShowTimes(data); 
-    
+                const response = await axios.get(`${apiShowTimeUrl}${movieId}/film`);
+                const data = response.data;
+                setShowTimes(data);
+
                 if (data.length > 0) {
                     const firstBranch = data[0].branch_id?._id || '';
                     setSelectedBranch(firstBranch);
-    
+
                     const firstDate = data
                         .filter((showTime) => showTime.branch_id?._id === firstBranch)
                         .map((showTime) => new Date(showTime.start_time))
                         .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
-    
+
                     setSelectedDate(firstDate);
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách suất chiếu:', error);
             }
         };
-    
+
         fetchShowTimes();
     }, [movieId]);
-    
+
     const uniqueBranches = Array.from(
         new Map(
             showTimes
@@ -208,13 +212,13 @@ function BookingModal({ movieTitle, movieId, onClose }) {
 
     const handleTimeSlotClick = (showTime) => {
         const filmId = showTime.film_id._id;
-        const branchName = showTime.branch_id.branch_name;
-    
+        // const branchName = showTime.branch_id.branch_name;
+
         axios
-            .get(`http://localhost:3000/api/v1/film/${filmId}`)
+            .get(`${apiFilmUrl}${filmId}`)
             .then((filmResponse) => {
                 const filmDetails = filmResponse.data;
-    
+
                 navigate(`/user/booking/${showTime._id}`, {
                     state: {
                         showTimeDetails: showTime,
@@ -267,7 +271,10 @@ function BookingModal({ movieTitle, movieId, onClose }) {
                         <ShowTimeGroup>
                             {groupedShowTimes[selectedDate].map((showTime) => (
                                 <StyledShowTime key={showTime._id} onClick={() => handleTimeSlotClick(showTime)}>
-                                    <TimeSlot>{new Date(showTime.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TimeSlot>
+                                    <TimeSlot>{new Date(showTime.start_time).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}</TimeSlot>
                                     <StyledSpan>Màn hình: {showTime.screen.screen_name}</StyledSpan>
                                 </StyledShowTime>
                             ))}

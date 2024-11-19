@@ -2,6 +2,8 @@
 import styled from "styled-components";
 import axios from "axios";
 import VoucherModal from "../../modal/VoucherModal.jsx";
+import ConfirmationModal from "../../modal/ConfirmationModal.jsx";
+import Loading from "../../utils/Loading.jsx";
 
 const apiDiscountUrl = import.meta.env.VITE_API_VOUCHER_URL;
 
@@ -9,14 +11,21 @@ function Voucher() {
     const [showModal, setShowModal] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [vouchers, setVouchers] = useState([]);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [isActivating, setIsActivating] = useState(false);
+    const [voucherToToggle, setVoucherToToggle] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchVouchers = async () => {
             try {
+                setIsLoading(true)
                 const response = await axios.get(apiDiscountUrl);
                 setVouchers(response.data);
+                setIsLoading(false)
             } catch (error) {
                 console.error("Error fetching vouchers", error);
+                setIsLoading(false)
             }
         };
 
@@ -35,127 +44,135 @@ function Voucher() {
 
     const handleEdit = (voucherItem) => {
         setSelectedVoucher(voucherItem);
+        console.log("Selected Voucher", voucherItem);
         setShowModal(true);
     };
 
-    const handleToggleActive = async (voucherItem) => {
-        try {
-            const updatedVoucher = {
-                ...voucherItem,
-                is_active: !voucherItem.is_active,
-            };
-            const response = await axios.put(
-                `/api/v1/discount/${voucherItem._id}`,
-                updatedVoucher
-            );
-            setVouchers((prevVouchers) =>
-                prevVouchers.map((v) => (v._id === voucherItem._id ? response.data : v))
-            );
-        } catch (error) {
-            console.error("Error toggling voucher active state", error);
+    const handleConfirmToggle = async () => {
+        if (voucherToToggle) {
+            try {
+                setIsLoading(true)
+                const updatedVoucher = {
+                    is_active: isActivating,
+                };
+                const response = await axios.put(
+                    `${apiDiscountUrl}${voucherToToggle._id}`,
+                    updatedVoucher
+                );
+                setVouchers((prevVouchers) =>
+                    prevVouchers.map((v) => (v._id === voucherToToggle._id ? response.data : v))
+                );
+                setIsLoading(false)
+            } catch (error) {
+                console.error("Error toggling voucher active state", error);
+                setIsLoading(false)
+            } finally {
+                setShowConfirmModal(false);
+                setVoucherToToggle(null);
+                setIsLoading(false)
+            }
         }
     };
 
-    const handleCreateOrUpdate = async (voucher) => {
-        try {
-            if (selectedVoucher && selectedVoucher._id) {
-                const response = await axios.put(
-                    `${apiDiscountUrl}${selectedVoucher._id}`,
-                    voucher
-                );
-                setVouchers((prevVouchers) =>
-                    prevVouchers.map((v) =>
-                        v._id === selectedVoucher._id ? response.data : v
-                    )
-                );
-                console.log("Voucher Updated", voucher);
-            } else {
-                const response = await axios.post(apiDiscountUrl, voucher);
-                setVouchers((prevVouchers) => [...prevVouchers, response.data]);
-                console.log("Voucher Created", voucher);
-            }
-            handleCloseModal();
-        } catch (error) {
-            console.error("Error creating/updating voucher", error);
-        }
+    const handleCloseConfirmModal = () => {
+        setShowConfirmModal(false);
+        setVoucherToToggle(null);
+    };
+
+
+    const handleToggleActive = (voucherItem) => {
+        setVoucherToToggle(voucherItem);
+        setIsActivating(!voucherItem.is_active);
+        setShowConfirmModal(true);
     };
 
     return (
-        <Container>
-            <CreateButton onClick={handleCreateClick}>Create Voucher</CreateButton>
-            <h2>Voucher List</h2>
-            <VouchersTable>
-                <thead>
-                <tr>
-                    <th>Voucher ID</th>
-                    <th>Discount Name</th>
-                    <th>Discount Code</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Quantity</th>
-                    <th>Percent Discount</th>
-                    <th>Status</th>
-                    <th>Created Date</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                {vouchers.length > 0 ? (
-                    vouchers.map((voucherItem, index) => (
-                        <tr key={index}>
-                            <td>{voucherItem._id}</td>
-                            <td>{voucherItem.discount_name}</td>
-                            <td>{voucherItem.discount_code}</td>
-                            <td>{new Date(voucherItem.start_date).toLocaleDateString()}</td>
-                            <td>{new Date(voucherItem.end_date).toLocaleDateString()}</td>
-                            <td>{voucherItem.quantity}</td>
-                            <td>{voucherItem.percent}%</td>
-                            <td>{voucherItem.is_active ? "Active" : "Inactive"}</td>
-                            <td>{new Date(voucherItem.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <ActionButton onClick={() => handleEdit(voucherItem)}>
-                                    Edit
-                                </ActionButton>
-                                <ActionButton
-                                    delete
-                                    onClick={() => handleToggleActive(voucherItem)}
-                                >
-                                    {voucherItem.is_active ? "Deactivate" : "Activate"}
-                                </ActionButton>
-                            </td>
-                        </tr>
-                    ))
-                ) : (
+        <>
+            {isLoading && <Loading/>}
+            <Container>
+                <CreateButton onClick={handleCreateClick}>Create Voucher</CreateButton>
+                <h2>Voucher List</h2>
+                <VouchersTable>
+                    <thead>
                     <tr>
-                        <td colSpan="10">No vouchers available.</td>
+                        <th>Voucher ID</th>
+                        <th>Discount Name</th>
+                        <th>Discount Code</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Quantity</th>
+                        <th>Percent Discount</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Action</th>
                     </tr>
+                    </thead>
+                    <tbody>
+                    {vouchers.length > 0 ? (
+                        vouchers.map((voucherItem, index) => (
+                            <tr key={index}>
+                                <td>{voucherItem._id}</td>
+                                <td>{voucherItem.discount_name}</td>
+                                <td>{voucherItem.discount_code}</td>
+                                <td>{new Date(voucherItem.start_date).toLocaleDateString()}</td>
+                                <td>{new Date(voucherItem.end_date).toLocaleDateString()}</td>
+                                <td>{voucherItem.quantity}</td>
+                                <td>{voucherItem.percent}%</td>
+                                <td>{voucherItem.is_active ? "Active" : "Inactive"}</td>
+                                <td>{new Date(voucherItem.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <ActionButton onClick={() => handleEdit(voucherItem)}>
+                                        Edit
+                                    </ActionButton>
+                                    <ActionButton
+                                        delete
+                                        onClick={() => handleToggleActive(voucherItem)}
+                                    >
+                                        {voucherItem.is_active ? "Deactivate" : "Activate"}
+                                    </ActionButton>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="10">No vouchers available.</td>
+                        </tr>
+                    )}
+                    </tbody>
+                </VouchersTable>
+
+                {showModal && (
+                    <VoucherModal
+                        onClose={handleCloseModal}
+                        voucherData={selectedVoucher}
+                        onSave={(updatedVoucher) => {
+                            if (selectedVoucher && selectedVoucher._id) {
+                                setVouchers((prevVouchers) =>
+                                    prevVouchers.map((v) =>
+                                        v._id === selectedVoucher._id ? updatedVoucher : v
+                                    )
+                                );
+                            } else {
+                                setVouchers((prevVouchers) => [...prevVouchers, updatedVoucher]);
+                            }
+                        }}
+                    />
                 )}
-                </tbody>
-            </VouchersTable>
-            {showModal && (
-                <VoucherModal
-                    onClose={handleCloseModal}
-                    voucherData={selectedVoucher}
-                    onSave={(updatedVoucher) => {
-                        if (selectedVoucher && selectedVoucher._id) {
-                            setVouchers((prevVouchers) =>
-                                prevVouchers.map((v) =>
-                                    v._id === selectedVoucher._id ? updatedVoucher : v
-                                )
-                            );
-                        } else {
-                            setVouchers((prevVouchers) => [...prevVouchers, updatedVoucher]);
-                        }
-                    }}
-                />
-            )}
-        </Container>
+
+                {showConfirmModal && (
+                    <ConfirmationModal
+                        isActive={isActivating}
+                        onClose={handleCloseConfirmModal}
+                        onSubmit={handleConfirmToggle}
+                    />
+                )}
+            </Container>
+        </>
     );
 }
 
 export default Voucher;
 
-// Styled components
 const Container = styled.div`
     position: absolute;
     top: 10%;

@@ -31,30 +31,29 @@ function Header({onLogout}) {
 
 export default Header
 
-// Styled components
 const HeaderContainer = styled.header`
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 60px;
-    background-color: #0b9a7d; /* Matches the Navbar background */
+    background-color: #0b9a7d;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
     z-index: 1000;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    color: #ecf0f1; /* Light text color for better contrast */
+    color: #ecf0f1;
 `
 
 const Title = styled.h2`
     margin: 0;
-    color: #ecf0f1; /* Matches the text color with the Navbar */
+    color: #ecf0f1;
 `
 
 const LogoutButton = styled.button`
-    background-color: #e74c3c; /* Dark red for the button */
+    background-color: #e74c3c;
     border: none;
     color: #ecf0f1;
     padding: 10px 20px;
@@ -63,7 +62,7 @@ const LogoutButton = styled.button`
     transition: background-color 0.3s;
 
     &:hover {
-        background-color: #c0392b; /* Darker shade on hover */
+        background-color: #c0392b;
     }
 `
 

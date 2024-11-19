@@ -115,7 +115,6 @@ function MovieScreenings() {
 
 export default MovieScreenings;
 
-// Styled components
 const Container = styled.div`
     position: absolute;
     top: 10%;

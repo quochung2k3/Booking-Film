@@ -8,6 +8,7 @@ const apiSendOTPUrl = import.meta.env.VITE_API_AUTH_SEND_OTP_URL
 const apiResetPassUrl = import.meta.env.VITE_API_AUTH_RESET_PASS_URL
 const apiVerifyOTPUrl = import.meta.env.VITE_API_AUTH_VERIFY_OTP_URL
 
+// eslint-disable-next-line react/prop-types
 function AuthTabs({onLogin}) {
     const [activeTab, setActiveTab] = useState("signIn");
     const [signInData, setSignInData] = useState({username: "", password: ""});
@@ -44,9 +45,10 @@ function AuthTabs({onLogin}) {
             }
         } catch (error) {
             alert("Invalid credentials");
+            console.error("Error:", error.message);
         }
     };
-    
+
 
     const handleSignUpSubmit = async (e) => {
         e.preventDefault();
@@ -81,6 +83,7 @@ function AuthTabs({onLogin}) {
             setOtpData({...otpData, email});
         } catch (error) {
             alert("Gửi OTP thất bại");
+            console.error("Error:", error.message);
         }
     };
 
@@ -96,6 +99,7 @@ function AuthTabs({onLogin}) {
             alert("Đặt lại mật khẩu thành công");
         } catch (error) {
             alert("Đặt lại mật khẩu thất bại");
+            console.error("Error:", error.message);
         }
     };
 
@@ -115,6 +119,7 @@ function AuthTabs({onLogin}) {
             alert("Đặt lại mật khẩu thành công");
         } catch (error) {
             alert("Đặt lại mật khẩu thất bại");
+            console.error("Error:", error.message);
         }
     };
 

@@ -6,6 +6,7 @@ import BookingModal from "../modal/BookingModal.jsx";
 import {useNavigate} from "react-router-dom";
 import axios from 'axios';
 import LoginAlertModal from "../Components/User/LoginAlertModal.jsx";
+import Loading from "../utils/Loading.jsx";
 
 const Container = styled.div`
     padding-top: 80px;
@@ -198,6 +199,8 @@ const BuyTicketButton = styled.button`
     }
 `;
 
+const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
+
 // eslint-disable-next-line react/prop-types
 const MovieDetailModal = ({movie, onClose, onBuyTicket}) => (
     <ModalOverlay>
@@ -252,30 +255,51 @@ function MovieList({dataBookingFilm, onMovieClick, onBuyTicket}) {
 
 // eslint-disable-next-line react/prop-types
 function User({onLogout}) {
-    const [activeTab, setActiveTab] = useState('PHIM SẮP CHIẾU');
+    const [activeTab, setActiveTab] = useState('PHIM ĐANG CHIẾU');
     const [filteredMovies, setFilteredMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [isLoginAlertOpen, setIsLoginAlertOpen] = useState(false);
     const [isMovieDetailOpen, setIsMovieDetailOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMovies = async () => {
-            let apiUrl = '';
-            if (activeTab === 'PHIM SẮP CHIẾU') {
-                apiUrl = 'http://localhost:3000/api/v1/film';
-            } else if (activeTab === 'PHIM ĐANG CHIẾU') {
-                apiUrl = 'http://localhost:3000/api/v1/film';
-            } else if (activeTab === 'SUẤT CHIẾU ĐẶC BIỆT') {
-                apiUrl = 'http://localhost:3000/api/v1/film';
-            }
-
             try {
-                const response = await axios.get(apiUrl);
-                setFilteredMovies(response.data);
+                setIsLoading(true)
+                const response = await axios.get(apiFilmUrl);
+                const dataBookingFilm = response.data;
+                const currentDate = new Date();
+
+                const moviesComingSoon = dataBookingFilm.filter(
+                    (movie) => new Date(movie.early_release_date) > currentDate
+                );
+
+                const moviesNowShowing = dataBookingFilm.filter(
+                    (movie) => new Date(movie.release_date) < currentDate
+                );
+
+                const specialShowings = dataBookingFilm.filter(
+                    (movie) =>
+                        new Date(movie.early_release_date) < currentDate &&
+                        new Date(movie.release_date) > currentDate
+                );
+
+                let filteredMovies = [];
+                if (activeTab === 'PHIM SẮP CHIẾU') {
+                    filteredMovies = moviesComingSoon;
+                } else if (activeTab === 'PHIM ĐANG CHIẾU') {
+                    filteredMovies = moviesNowShowing;
+                } else if (activeTab === 'SUẤT CHIẾU ĐẶC BIỆT') {
+                    filteredMovies = specialShowings;
+                }
+
+                setFilteredMovies(filteredMovies);
+                setIsLoading(false)
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách phim:', error);
+                setIsLoading(false)
             }
         };
 
@@ -321,37 +345,41 @@ function User({onLogout}) {
     };
 
     return (
-        <Container>
-            <Header onLogout={onLogout}/>
-            <TabsContainer>
-                <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>
-                    PHIM SẮP CHIẾU
-                </Tab>
-                <Tab active={activeTab === 'PHIM ĐANG CHIẾU'} onClick={() => handleTabClick('PHIM ĐANG CHIẾU')}>
-                    PHIM ĐANG CHIẾU
-                </Tab>
-                <Tab active={activeTab === 'SUẤT CHIẾU ĐẶC BIỆT'} onClick={() => handleTabClick('SUẤT CHIẾU ĐẶC BIỆT')}>
-                    SUẤT CHIẾU ĐẶC BIỆT
-                </Tab>
-            </TabsContainer>
-            <MovieList dataBookingFilm={filteredMovies} onMovieClick={handleMovieClick}
-                       onBuyTicket={handleBuyTicketClick}/>
-            {isModalOpen && selectedMovie && (
-                <BookingModal
-                    movieTitle={selectedMovie.film_name}
-                    movieId={selectedMovie._id}
-                    onClose={() => setIsModalOpen(false)}
-                />
-            )}
-            {isLoginAlertOpen && (
-                <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin}/>
-            )}
-            {isMovieDetailOpen && selectedMovie && (
-                <MovieDetailModal movie={selectedMovie} onClose={closeMovieDetailModal}
-                                  onBuyTicket={handleBuyTicketClick}/>
-            )}
-            <Footer/>
-        </Container>
+        <>
+            {isLoading && <Loading/>}
+            <Container>
+                <Header onLogout={onLogout}/>
+                <TabsContainer>
+                    <Tab active={activeTab === 'PHIM ĐANG CHIẾU'} onClick={() => handleTabClick('PHIM ĐANG CHIẾU')}>
+                        PHIM ĐANG CHIẾU
+                    </Tab>
+                    <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>
+                        PHIM SẮP CHIẾU
+                    </Tab>
+                    <Tab active={activeTab === 'SUẤT CHIẾU ĐẶC BIỆT'}
+                         onClick={() => handleTabClick('SUẤT CHIẾU ĐẶC BIỆT')}>
+                        SUẤT CHIẾU ĐẶC BIỆT
+                    </Tab>
+                </TabsContainer>
+                <MovieList dataBookingFilm={filteredMovies} onMovieClick={handleMovieClick}
+                           onBuyTicket={handleBuyTicketClick}/>
+                {isModalOpen && selectedMovie && (
+                    <BookingModal
+                        movieTitle={selectedMovie.film_name}
+                        movieId={selectedMovie._id}
+                        onClose={() => setIsModalOpen(false)}
+                    />
+                )}
+                {isLoginAlertOpen && (
+                    <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin}/>
+                )}
+                {isMovieDetailOpen && selectedMovie && (
+                    <MovieDetailModal movie={selectedMovie} onClose={closeMovieDetailModal}
+                                      onBuyTicket={handleBuyTicketClick}/>
+                )}
+                <Footer/>
+            </Container>
+        </>
     );
 }
 
