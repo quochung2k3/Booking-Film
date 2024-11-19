@@ -267,21 +267,22 @@ function User({onLogout}) {
     useEffect(() => {
         const fetchMovies = async () => {
             try {
-                setIsLoading(true)
+                setIsLoading(true);
                 const response = await axios.get(apiFilmUrl);
                 const dataBookingFilm = response.data;
                 const currentDate = new Date();
-
+                
                 const moviesComingSoon = dataBookingFilm.filter(
-                    (movie) => new Date(movie.early_release_date) > currentDate
+                    (movie) => movie.is_active === true && new Date(movie.early_release_date) > currentDate
                 );
 
                 const moviesNowShowing = dataBookingFilm.filter(
-                    (movie) => new Date(movie.release_date) < currentDate
+                    (movie) => movie.is_active === true && new Date(movie.release_date) < currentDate
                 );
 
                 const specialShowings = dataBookingFilm.filter(
                     (movie) =>
+                        movie.is_active === true &&
                         new Date(movie.early_release_date) < currentDate &&
                         new Date(movie.release_date) > currentDate
                 );
@@ -296,10 +297,10 @@ function User({onLogout}) {
                 }
 
                 setFilteredMovies(filteredMovies);
-                setIsLoading(false)
+                setIsLoading(false);
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách phim:', error);
-                setIsLoading(false)
+                setIsLoading(false);
             }
         };
 

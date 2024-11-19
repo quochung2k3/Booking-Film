@@ -8,7 +8,7 @@ const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
 const apiShowTimeUrl = import.meta.env.VITE_API_SHOW_TIME_URL
 
 // eslint-disable-next-line react/prop-types
-function ScreeningModal({onClose}) {
+function ScreeningModal({onClose, onRefresh}) {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedMovie, setSelectedMovie] = useState("");
     const [duration, setDuration] = useState(0);
@@ -112,7 +112,7 @@ function ScreeningModal({onClose}) {
         const startDateTime = `${selectedDate}T${startTime}:00.000Z`;
 
         try {
-            setLoading(true)
+            setLoading(true);
             await axios.post(apiShowTimeUrl, {
                 film_id: selectedMovie,
                 branch_id: selectedBranch,
@@ -123,12 +123,14 @@ function ScreeningModal({onClose}) {
                 normal_price: parseFloat(normalPrice),
             });
             onClose();
-            setLoading(false)
+            if (onRefresh) onRefresh();
+            setLoading(false);
         } catch (error) {
             console.error("Error creating showtime:", error);
-            setLoading(false)
+            setLoading(false);
         }
     };
+
 
     return (
         <>

@@ -324,7 +324,7 @@ const TotalPriceContainer = styled.div`
     }
 `;
 
-const generateSeats = (bookedSeats) => {
+const generateSeats = (bookedSeats, vipPrice, normalPrice) => {
     const rows = 'ABCDEFGHIJ'.split('');
     const seatsPerRow = 12;
     const seats = [];
@@ -336,7 +336,7 @@ const generateSeats = (bookedSeats) => {
             rowSeats.push({
                 seatId,
                 status: bookedSeats.includes(seatId) ? 'booked' : 'available',
-                price: row >= 'D' && row <= 'G' ? 75000 : 50000,
+                price: row >= 'D' && row <= 'G' ? vipPrice : normalPrice,
                 type: row >= 'D' && row <= 'G' ? 'vip' : 'regular',
             });
         }
@@ -360,6 +360,8 @@ function SolveBooking({onLogout}) {
     const [showNotification, setShowNotification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    console.log("showTimeDetails", showTimeDetails);
+
     useEffect(() => {
         const fetchSeatsAndDetails = async () => {
             if (showTimeDetails) {
@@ -371,7 +373,7 @@ function SolveBooking({onLogout}) {
 
                     const bookedSeats = response.data.flatMap((payment) => payment.list_seat);
 
-                    setSeats(generateSeats(bookedSeats));
+                    setSeats(generateSeats(bookedSeats, showTimeDetails.vip_price, showTimeDetails.normal_price));
                     setIsLoading(false);
                 } catch (error) {
                     console.error("Error fetching payment details:", error);

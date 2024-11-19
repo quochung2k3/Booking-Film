@@ -4,6 +4,7 @@ import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ScreeningModal from "../../modal/ScreeningModal.jsx";
+import Loading from "../../utils/Loading.jsx";
 import axios from "axios";
 
 const apiGetShowTime = import.meta.env.VITE_API_SHOW_TIME_URL
@@ -12,18 +13,30 @@ function MovieScreenings() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showModal, setShowModal] = useState(false);
     const [screeningsList, setScreeningsList] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchScreenings = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(apiGetShowTime);
+            const allScreenings = response.data;
+
+            const filteredScreenings = allScreenings.filter((show) => {
+                const screeningDate = new Date(show.start_time).toISOString().split("T")[0];
+                const selectedFormattedDate = selectedDate.toISOString().split("T")[0];
+                return screeningDate === selectedFormattedDate;
+            });
+
+            setScreeningsList(filteredScreenings);
+            setLoading(false);
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu buổi chiếu phim:", error);
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
-        const fetchScreenings = async () => {
-            try {
-                const response = await axios.get(apiGetShowTime);
-                setScreeningsList(response.data);
-                console.log("repose: ", response.data)
-            } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu buổi chiếu phim:", error);
-            }
-        };
-
         fetchScreenings();
     }, [selectedDate]);
 
@@ -40,59 +53,63 @@ function MovieScreenings() {
     };
 
     return (
-        <Container>
-            <CreateButton onClick={handleCreateClick}>Create a Movie Show</CreateButton>
-            <h2>List Of Movie Screenings</h2>
-            <DatePickerContainer>
-                <label>Select Date: </label>
-                <DatePicker
-                    selected={selectedDate}
-                    onChange={handleDateChange}
-                    dateFormat="yyyy/MM/dd"
-                    showMonthYearDropdown/>
-            </DatePickerContainer>
-            <ScreeningsTable>
-                <thead>
-                <tr>
-                    <th>Branch</th>
-                    <th>Address</th>
-                    <th>Screening Room</th>
-                    <th>Movie Name</th>
-                    <th>Start Time</th>
-                    <th>Duration</th>
-                    <th>End Time</th>
-                    <th>Number of Seats</th>
-                </tr>
-                </thead>
-                <tbody>
-                {screeningsList.length > 0 ? (
-                    screeningsList.map((show, index) => (
-                        <tr key={index}>
-                            <td>{show.branch_id.branch_name}</td>
-                            <td>{show.branch_id.address}</td>
-                            <td>{show.screen.screen_name}</td>
-                            <td>{show.film_id.film_name}</td>
-                            <td>{format(new Date(show.start_time), 'HH:mm')}</td>
-                            <td>{show.duration}</td>
-                            <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
-                            <td>{show.screen.total_seat}</td>
-                            {/* <td>
-                                <ActionButton onClick={() => handleEdit(show)}>Chỉnh Sửa</ActionButton>
-                                <ActionButton delete onClick={() => handleDelete(show)}>Xóa</ActionButton>
-                            </td> */}
-                        </tr>
-                    ))
-                ) : (
+        <>
+            {loading && <Loading/>}
+            <Container>
+                <CreateButton onClick={handleCreateClick}>Create a Movie Show</CreateButton>
+                <h2>List Of Movie Screenings</h2>
+                <DatePickerContainer>
+                    <label>Select Date: </label>
+                    <DatePicker
+                        selected={selectedDate}
+                        onChange={handleDateChange}
+                        dateFormat="yyyy/MM/dd"
+                        showMonthYearDropdown
+                    />
+                </DatePickerContainer>
+                <ScreeningsTable>
+                    <thead>
                     <tr>
-                        <td colSpan="9">Không có buổi chiếu nào cho ngày này.</td>
+                        <th>Branch</th>
+                        <th>Address</th>
+                        <th>Screening Room</th>
+                        <th>Movie Name</th>
+                        <th>Start Time</th>
+                        <th>Duration</th>
+                        <th>End Time</th>
+                        <th>Number of Seats</th>
                     </tr>
+                    </thead>
+                    <tbody>
+                    {screeningsList.length > 0 ? (
+                        screeningsList.map((show, index) => (
+                            <tr key={index}>
+                                <td>{show.branch_id ? show.branch_id.branch_name : "N/A"}</td>
+                                <td>{show.branch_id ? show.branch_id.address : "N/A"}</td>
+                                <td>{show.screen ? show.screen.screen_name : "N/A"}</td>
+                                <td>{show.film_id ? show.film_id.film_name : "N/A"}</td>
+                                <td>{show.start_time ? new Date(show.start_time).toISOString().substring(11, 16) : "N/A"}</td>
+                                <td>{show.duration || "N/A"}</td>
+                                <td>
+                                    {show.start_time
+                                        ? (addMinutes(new Date(show.start_time), show.duration || 0)).toISOString().substring(11, 16)
+                                        : "N/A"}
+                                </td>
+                                <td>{show.screen ? show.screen.total_seat : "N/A"}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="9">Không có buổi chiếu nào cho ngày này.</td>
+                        </tr>
+                    )}
+                    </tbody>
+                </ScreeningsTable>
+                {showModal && (
+                    <ScreeningModal onClose={handleCloseModal} onRefresh={fetchScreenings}/>
                 )}
-                </tbody>
-            </ScreeningsTable>
-            {showModal && (
-                <ScreeningModal onClose={handleCloseModal}/>
-            )}
-        </Container>
+            </Container>
+        </>
     );
 }
 
@@ -128,21 +145,6 @@ const ScreeningsTable = styled.table`
         background-color: #f2f2f2;
     }
 `;
-
-const ActionButton = styled.button`
-    background-color: ${(props) => (props.delete ? "#f44336" : "#4CAF50")};
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    margin-right: 5px;
-
-    &:hover {
-        background-color: ${(props) => (props.delete ? "#d32f2f" : "#45a049")};
-    }
-`;
-
 const CreateButton = styled.button`
     background-color: #4CAF50;
     color: white;
