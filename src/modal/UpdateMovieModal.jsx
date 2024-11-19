@@ -1,11 +1,12 @@
 ﻿// MovieModal.jsx
-import {useState, useEffect} from "react";
+import axios from "axios";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 
 const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
 
 // eslint-disable-next-line react/prop-types
-function UpdateMovieModal({movie, onClose, onSubmit}) {
+function UpdateMovieModal({ movie, onClose, onSubmit }) {
     const [movieData, setMovieData] = useState(movie);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -15,11 +16,32 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         title = 'Details'
     }
 
-    console.log("movie: ", movie)
+    const convertDateToInputFormat = (date) => {
+        if (!date) return date;
+        // convert dd/mm/yyyy -> yyyy-mm-dd
+        const [day, month, year] = date.split('/');
+        return `${year}-${month}-${day}`;
+    }
 
     // Reset dữ liệu khi mở modal
     useEffect(() => {
-        setMovieData(movie);
+        console.log("movie: ", movie.listActor)
+        setMovieData({
+            id: movie.id,
+            film_name: movie.movieName,
+            // Thạch chú ý, bên trang list film, category nó để name chứ không phải id
+            category_id: movie.category,
+
+            // movie.duration: xxx minutes -> chỉ lấy xxx
+            duration: movie.duration.split(' ')[0],
+            release_date: convertDateToInputFormat(movie.releaseDate),
+            early_release_date: convertDateToInputFormat(movie.earlyReleaseDate),
+            country: movie.country,
+            director: movie.director,
+            list_actor: movie.listActor,
+            description: movie.description,
+            image_url: movie.imageUrl,
+        });
         setIsChanged(false);
     }, [movie]);
 
@@ -30,8 +52,8 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
     };
 
     const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setMovieData({...movieData, [name]: value});
+        const { name, value } = e.target;
+        setMovieData({ ...movieData, [name]: value });
         setIsChanged(true); // Đánh dấu đã có thay đổi
     };
 
@@ -41,6 +63,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
     };
 
     const handleSubmit = async () => {
+        console.log("submit")
         let method = 'POST';
         let url = apiFilmUrl;
 
@@ -50,46 +73,46 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             url = `${apiFilmUrl}${movieData.id}`;
         }
 
-        try {
-            const formData = new FormData();
+        const formData = new FormData();
 
-            // Thêm các trường dữ liệu khác vào FormData
-            for (const key in movieData) {
-                if (movieData[key]) {
-                    formData.append(key, movieData[key]);
+        for (const key in movieData) {
+            if (movieData[key]) {
+                if (key === 'list_actor') {
+                    // list_actor: "actor1, actor2, actor3" -> ["actor1", "actor2", "actor3"]
+                    const actors = movieData.list_actor.split(',').map(actor => actor.trim());
+                    actors.forEach((actor) => {
+                        formData.append(`list_actor`, actor);
+                    });
+                    continue;
                 }
+                formData.append(key, movieData[key]);
             }
+        }
 
-            // Kiểm tra nếu hình ảnh đã được chọn
-            if (selectedImage) {
-                formData.append("image", selectedImage);
-            } else {
+        // Kiểm tra nếu hình ảnh đã được chọn
+        if (selectedImage) {
+            formData.append("image", selectedImage);
+        } else {
+            if (method === 'POST') {
                 alert("Vui lòng chọn hình ảnh trước khi gửi.");
                 return;
             }
-
-            // Gỡ lỗi FormData để xem nội dung của nó
-            for (const [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-
-            const response = await fetch(url, {
-                method: method,
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim`);
-            }
-
-            const result = await response.json();
-            console.log(`Phim ${method === 'POST' ? 'được tạo' : 'được cập nhật'} thành công!`, result);
-            onSubmit(result); // Thông báo cho component cha với kết quả
-            onClose(); // Đóng modal
-        } catch (error) {
-            console.error("Lỗi:", error.message);
-            alert("Có lỗi xảy ra. Vui lòng thử lại.");
         }
+
+        try {
+            console.log("url: ", url)
+            const response = method === 'POST'
+                ? await axios.post(url, formData)
+                : await axios.put(url, formData);
+            alert(`Đã ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim thành công!`);
+            console.log("response: ", response.data)
+            onSubmit(response.data);
+        } catch (error) {
+            alert(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response.data.message}`);
+            throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response.data.message}`);
+        }
+
+        onClose();
     };
 
 
@@ -110,8 +133,8 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <LabelCustom>Movie Name:</LabelCustom>
                         <StyledInput
                             type="text"
-                            name="movieName"
-                            value={movieData.movieName}
+                            name="film_name"
+                            value={movieData.film_name}
                             onChange={handleInputChange}
                         />
                     </FormItem>
@@ -119,15 +142,15 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <LabelCustom>Category:</LabelCustom>
                         <StyledInput
                             type="text"
-                            name="category"
-                            value={movieData.category}
+                            name="category_id"
+                            value={movieData.category_id}
                             onChange={handleInputChange}
                         />
                     </FormItem>
                     <FormItem>
                         <LabelCustom>Duration:</LabelCustom>
                         <StyledInput
-                            type="text"
+                            type="number"
                             name="duration"
                             value={movieData.duration}
                             onChange={handleInputChange}
@@ -137,8 +160,8 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <LabelCustom>Release Date:</LabelCustom>
                         <StyledInput
                             type="date"
-                            name="releaseDate"
-                            value={movieData.releaseDate}
+                            name="release_date"
+                            value={movieData.release_date}
                             onChange={handleInputChange}
                         />
                     </FormItem>
@@ -146,8 +169,8 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <LabelCustom>Early Release Date:</LabelCustom>
                         <StyledInput
                             type="date"
-                            name="earlyReleaseDate"
-                            value={movieData.earlyReleaseDate}
+                            name="early_release_date"
+                            value={movieData.early_release_date}
                             onChange={handleInputChange}
                         />
                     </FormItem>
@@ -173,8 +196,8 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <LabelCustom>Actors:</LabelCustom>
                         <StyledInput
                             type="text"
-                            name="listActor"
-                            value={movieData.listActor}
+                            name="list_actor"
+                            value={movieData.list_actor}
                             onChange={handleInputChange}
                         />
                     </FormItem>
@@ -194,6 +217,21 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                             onChange={handleImageChange} // Xử lý chọn ảnh
                         />
                     </FormItem>
+                    {/* show selected image */}
+                    {
+                        selectedImage && (
+                            <FormItem fullWidth>
+                                <img src={URL.createObjectURL(selectedImage)} alt="Selected" style={{ width: "20%" }} />
+                            </FormItem>
+                        )
+                    }
+                    {
+                        movieData.image_url && !selectedImage && (
+                            <FormItem fullWidth>
+                                <img src={movieData.image_url} alt="Movie" style={{ width: "20%" }} />
+                            </FormItem>
+                        )
+                    }
                 </FormGrid>
                 {isChanged && (
                     <ButtonContainer>
