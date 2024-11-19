@@ -4,7 +4,7 @@ import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ScreeningModal from "../../modal/ScreeningModal.jsx";
-import axios from "axios"; // Để thực hiện gọi API
+import axios from "axios";
 
 const apiGetShowTime = import.meta.env.VITE_API_SHOW_TIME_URL
 
@@ -13,15 +13,10 @@ function MovieScreenings() {
     const [showModal, setShowModal] = useState(false);
     const [screeningsList, setScreeningsList] = useState([]);
 
-    // Lấy dữ liệu buổi chiếu từ API
     useEffect(() => {
         const fetchScreenings = async () => {
             try {
-                const response = await axios.get(apiGetShowTime, {
-                    params: {
-                        date: selectedDate.toISOString().split("T")[0]
-                    }
-                });
+                const response = await axios.get(apiGetShowTime);
                 setScreeningsList(response.data);
                 console.log("repose: ", response.data)
             } catch (error) {
@@ -30,7 +25,7 @@ function MovieScreenings() {
         };
 
         fetchScreenings();
-    }, [selectedDate]); // Lấy lại dữ liệu khi selectedDate thay đổi
+    }, [selectedDate]);
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -44,16 +39,6 @@ function MovieScreenings() {
         setShowModal(false);
     };
 
-    const handleEdit = (show) => {
-        console.log("Chỉnh sửa", show);
-        // Logic chỉnh sửa buổi chiếu
-    };
-
-    const handleDelete = (show) => {
-        console.log("Xóa", show);
-        // Logic xóa buổi chiếu
-    };
-
     return (
         <Container>
             <CreateButton onClick={handleCreateClick}>Create a Movie Show</CreateButton>
@@ -64,7 +49,7 @@ function MovieScreenings() {
                     selected={selectedDate}
                     onChange={handleDateChange}
                     dateFormat="yyyy/MM/dd"
-                />
+                    showMonthYearDropdown/>
             </DatePickerContainer>
             <ScreeningsTable>
                 <thead>
@@ -77,7 +62,6 @@ function MovieScreenings() {
                     <th>Duration</th>
                     <th>End Time</th>
                     <th>Number of Seats</th>
-                    {/* <th>Hành Động</th> */}
                 </tr>
                 </thead>
                 <tbody>
@@ -89,7 +73,6 @@ function MovieScreenings() {
                             <td>{show.screen.screen_name}</td>
                             <td>{show.film_id.film_name}</td>
                             <td>{format(new Date(show.start_time), 'HH:mm')}</td>
-                            {/* Định dạng giờ 24h */}
                             <td>{show.duration}</td>
                             <td>{format(addMinutes(new Date(show.start_time), show.duration), 'HH:mm')}</td>
                             <td>{show.screen.total_seat}</td>

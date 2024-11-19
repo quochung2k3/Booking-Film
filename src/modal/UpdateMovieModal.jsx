@@ -1,4 +1,5 @@
-﻿import {useState, useEffect} from "react";
+﻿// MovieModal.jsx
+import {useState, useEffect} from "react";
 import styled from "styled-components";
 
 const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
@@ -16,6 +17,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
     console.log("movie: ", movie)
 
+    // Reset dữ liệu khi mở modal
     useEffect(() => {
         setMovieData(movie);
         setIsChanged(false);
@@ -24,24 +26,25 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setSelectedImage(file);
-        setIsChanged(true);
+        setIsChanged(true); // Đánh dấu đã có thay đổi
     };
 
     const handleInputChange = (e) => {
         const {name, value} = e.target;
         setMovieData({...movieData, [name]: value});
-        setIsChanged(true);
+        setIsChanged(true); // Đánh dấu đã có thay đổi
     };
 
     const handleReset = () => {
         setMovieData(movie);
-        setIsChanged(false);
+        setIsChanged(false); // Reset lại trạng thái thay đổi
     };
 
     const handleSubmit = async () => {
         let method = 'POST';
         let url = apiFilmUrl;
 
+        // Nếu đang cập nhật phim hiện tại, sử dụng PUT thay vì POST
         if (title === 'Details') {
             method = 'PUT';
             url = `${apiFilmUrl}${movieData.id}`;
@@ -50,12 +53,14 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         try {
             const formData = new FormData();
 
+            // Thêm các trường dữ liệu khác vào FormData
             for (const key in movieData) {
                 if (movieData[key]) {
                     formData.append(key, movieData[key]);
                 }
             }
 
+            // Kiểm tra nếu hình ảnh đã được chọn
             if (selectedImage) {
                 formData.append("image", selectedImage);
             } else {
@@ -63,6 +68,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                 return;
             }
 
+            // Gỡ lỗi FormData để xem nội dung của nó
             for (const [key, value] of formData.entries()) {
                 console.log(`${key}:`, value);
             }
@@ -73,13 +79,13 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             });
 
             if (!response.ok) {
-                console.error("Lỗi:", response.statusText);
+                throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim`);
             }
 
             const result = await response.json();
             console.log(`Phim ${method === 'POST' ? 'được tạo' : 'được cập nhật'} thành công!`, result);
-            onSubmit(result);
-            onClose();
+            onSubmit(result); // Thông báo cho component cha với kết quả
+            onClose(); // Đóng modal
         } catch (error) {
             console.error("Lỗi:", error.message);
             alert("Có lỗi xảy ra. Vui lòng thử lại.");
@@ -185,7 +191,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <StyledInput
                             type="file"
                             accept="image/*"
-                            onChange={handleImageChange}
+                            onChange={handleImageChange} // Xử lý chọn ảnh
                         />
                     </FormItem>
                 </FormGrid>
@@ -203,6 +209,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
 export default UpdateMovieModal;
 
+// Styled components
 const ModalOverlay = styled.div`
     position: fixed;
     top: 0;

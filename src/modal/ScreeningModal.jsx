@@ -1,118 +1,233 @@
-﻿// CreateScreeningModal.jsx
-import {useState, useEffect} from "react";
+﻿import {useState, useEffect} from "react";
 import styled from "styled-components";
-import {sampleMovies, cinemaData} from "../utils/data.jsx";
+import axios from "axios";
+import Loading from "../utils/Loading.jsx";
+
+const apiBranchUrl = import.meta.env.VITE_API_BRANCH_URL
+const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
+const apiShowTimeUrl = import.meta.env.VITE_API_SHOW_TIME_URL
 
 // eslint-disable-next-line react/prop-types
 function ScreeningModal({onClose}) {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedMovie, setSelectedMovie] = useState("");
+    const [duration, setDuration] = useState(0);
     const [startTime, setStartTime] = useState("");
-    const [price, setPrice] = useState("");
-    const [selectedBranch, setSelectedBranch] = useState(cinemaData[0]?.branch || "");
+    const [vipPrice, setVipPrice] = useState("");
+    const [normalPrice, setNormalPrice] = useState("");
+    const [selectedBranch, setSelectedBranch] = useState("");
     const [selectedRoom, setSelectedRoom] = useState("");
     const [availableRooms, setAvailableRooms] = useState([]);
+    const [movies, setMovies] = useState([]);
+    const [branches, setBranches] = useState([]);
+    const [minDate, setMinDate] = useState("");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Khi chi nhánh thay đổi, cập nhật danh sách các phòng tương ứng
-        const branch = cinemaData.find((b) => b.branch === selectedBranch);
-        if (branch) {
-            setAvailableRooms(branch.listScreen);
-            setSelectedRoom(branch.listScreen[0]?.screenId || "");
+        // Fetch active branches
+        const fetchBranches = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(apiBranchUrl);
+                const activeBranches = response.data.filter(branch => branch.is_active === true);
+                setBranches(activeBranches);
+
+                if (activeBranches.length > 0) {
+                    const firstBranch = activeBranches[0];
+                    setSelectedBranch(firstBranch._id);
+                    setAvailableRooms(firstBranch.list_screen);
+                    if (firstBranch.list_screen.length > 0) {
+                        setSelectedRoom(firstBranch.list_screen[0]._id);
+                    }
+                }
+                setLoading(false)
+            } catch (error) {
+                console.error("Error fetching branches:", error);
+                setLoading(false)
+            }
+        };
+
+        // Fetch active movies
+        const fetchMovies = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(apiFilmUrl);
+                const activeMovies = response.data.filter(movie => movie.is_active === true);
+                setMovies(activeMovies);
+
+                if (activeMovies.length > 0) {
+                    const firstMovie = activeMovies[0];
+                    setSelectedMovie(firstMovie._id);
+                    setDuration(firstMovie.duration);
+                    updateMinDate(firstMovie);
+                }
+                setLoading(false)
+            } catch (error) {
+                console.error("Error fetching movies:", error);
+                setLoading(false)
+            }
+        };
+
+        fetchBranches();
+        fetchMovies();
+    }, []);
+
+    useEffect(() => {
+        const selectedBranchData = branches.find(branch => branch._id === selectedBranch);
+        if (selectedBranchData) {
+            setAvailableRooms(selectedBranchData.list_screen);
+            if (selectedBranchData.list_screen.length > 0) {
+                setSelectedRoom(selectedBranchData.list_screen[0]._id);
+            }
         } else {
             setAvailableRooms([]);
             setSelectedRoom("");
         }
-    }, [selectedBranch]);
+    }, [selectedBranch, branches]);
 
-    const handleCreate = () => {
-        // Logic to handle creating the movie screening
-        onClose();
+    const updateMinDate = (movie) => {
+        const earlyReleaseDate = movie.early_release_date
+            ? new Date(movie.early_release_date)
+            : null;
+        const releaseDate = new Date(movie.release_date);
+
+        const minDate = earlyReleaseDate && earlyReleaseDate > releaseDate
+            ? earlyReleaseDate
+            : releaseDate;
+
+        setMinDate(minDate.toISOString().split("T")[0]);
+    };
+
+    useEffect(() => {
+        const selectedMovieData = movies.find(movie => movie._id === selectedMovie);
+        if (selectedMovieData) {
+            setDuration(selectedMovieData.duration);
+            updateMinDate(selectedMovieData);
+        }
+    }, [selectedMovie, movies]);
+
+    const handleCreate = async () => {
+        if (!selectedDate || !startTime || !vipPrice || !normalPrice || !selectedMovie || !selectedBranch || !selectedRoom) {
+            alert("Please fill out all fields!");
+            return;
+        }
+        const startDateTime = `${selectedDate}T${startTime}:00.000Z`;
+
+        try {
+            setLoading(true)
+            await axios.post(apiShowTimeUrl, {
+                film_id: selectedMovie,
+                branch_id: selectedBranch,
+                screen_id: selectedRoom,
+                start_time: startDateTime,
+                duration: duration,
+                vip_price: parseFloat(vipPrice),
+                normal_price: parseFloat(normalPrice),
+            });
+            alert("Showtime created successfully!");
+            onClose();
+            setLoading(false)
+        } catch (error) {
+            console.error("Error creating showtime:", error);
+            setLoading(false)
+        }
     };
 
     return (
-        <ModalOverlay>
-            <ModalContent>
-                <TitleCustom>Create Movie Screening</TitleCustom>
-                <FormGroup>
-                    <LabelCustom>Movie:</LabelCustom>
-                    <select
-                        value={selectedMovie}
-                        onChange={(e) => setSelectedMovie(e.target.value)}
-                    >
-                        <option value="">Select Movie</option>
-                        {sampleMovies.map((movie) => (
-                            <option key={movie.id} value={movie.id}>
-                                {movie.movieName}
-                            </option>
-                        ))}
-                    </select>
-                </FormGroup>
-                <FormGroup>
-                    <LabelCustom>Date:</LabelCustom>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                    />
-                </FormGroup>
-                <FormGroupRow>
+        <>
+            {loading && <Loading/>}
+            <ModalOverlay>
+                <ModalContent>
+                    <TitleCustom>Create Movie Screening</TitleCustom>
                     <FormGroup>
-                        <LabelCustom>Start Time:</LabelCustom>
-                        <input
-                            type="time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                        />
+                        <LabelCustom>Movie:</LabelCustom>
+                        <select
+                            value={selectedMovie}
+                            onChange={(e) => setSelectedMovie(e.target.value)}
+                        >
+                            <option value="">Select Movie</option>
+                            {movies.map((movie) => (
+                                <option key={movie._id} value={movie._id}>
+                                    {movie.film_name}
+                                </option>
+                            ))}
+                        </select>
                     </FormGroup>
                     <FormGroup>
-                        <LabelCustom>Price:</LabelCustom>
+                        <LabelCustom>Date:</LabelCustom>
                         <input
-                            type="number"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            placeholder="Enter price"
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            min={minDate}
                         />
                     </FormGroup>
-                </FormGroupRow>
-                <FormGroup>
-                    <LabelCustom>Branch:</LabelCustom>
-                    <select
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                    >
-                        {cinemaData.map((branch) => (
-                            <option key={branch.branch} value={branch.branch}>
-                                {branch.branch}
-                            </option>
-                        ))}
-                    </select>
-                </FormGroup>
-                <FormGroup>
-                    <LabelCustom>Screening Room:</LabelCustom>
-                    <select
-                        value={selectedRoom}
-                        onChange={(e) => setSelectedRoom(e.target.value)}
-                    >
-                        {availableRooms.map((room) => (
-                            <option key={room.screenId} value={room.screenId}>
-                                {room.screenName} (Seats: {room.totalSeat})
-                            </option>
-                        ))}
-                    </select>
-                </FormGroup>
-                <ButtonContainer>
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button primary onClick={handleCreate}>Create</Button>
-                </ButtonContainer>
-            </ModalContent>
-        </ModalOverlay>
+                    <FormGroupRow>
+                        <FormGroup>
+                            <LabelCustom>Start Time:</LabelCustom>
+                            <input
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <LabelCustom>Vip Price:</LabelCustom>
+                            <input
+                                type="number"
+                                value={vipPrice}
+                                onChange={(e) => setVipPrice(e.target.value)}
+                                placeholder="Enter price"
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <LabelCustom>Normal Price</LabelCustom>
+                            <input
+                                type="number"
+                                value={normalPrice}
+                                onChange={(e) => setNormalPrice(e.target.value)}
+                                placeholder="Enter price"
+                            />
+                        </FormGroup>
+                    </FormGroupRow>
+                    <FormGroup>
+                        <LabelCustom>Branch:</LabelCustom>
+                        <select
+                            value={selectedBranch}
+                            onChange={(e) => setSelectedBranch(e.target.value)}
+                        >
+                            {branches.map((branch) => (
+                                <option key={branch._id} value={branch._id}>
+                                    {branch.branch_name}
+                                </option>
+                            ))}
+                        </select>
+                    </FormGroup>
+                    <FormGroup>
+                        <LabelCustom>Screening Room:</LabelCustom>
+                        <select
+                            value={selectedRoom}
+                            onChange={(e) => setSelectedRoom(e.target.value)}
+                        >
+                            {availableRooms.map((room) => (
+                                <option key={room._id} value={room._id}>
+                                    {room.screen_name} (Seats: {room.total_seat})
+                                </option>
+                            ))}
+                        </select>
+                    </FormGroup>
+                    <ButtonContainer>
+                        <Button onClick={onClose}>Cancel</Button>
+                        <Button primary onClick={handleCreate}>Create</Button>
+                    </ButtonContainer>
+                </ModalContent>
+            </ModalOverlay>
+        </>
     );
 }
 
 export default ScreeningModal;
 
-// Styled components
 const ModalOverlay = styled.div`
     position: fixed;
     top: 0;
@@ -130,7 +245,7 @@ const ModalContent = styled.div`
     background: #fff;
     padding: 30px;
     border-radius: 10px;
-    width: 400px;
+    width: 450px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     position: relative;
 `;
@@ -153,7 +268,8 @@ const FormGroup = styled.div`
 
 const FormGroupRow = styled.div`
     display: flex;
-    gap: 95px;
+    align-items: center;
+    gap: 50px;
 `;
 
 const ButtonContainer = styled.div`
