@@ -1,4 +1,4 @@
-﻿import {useState, useEffect} from "react";
+﻿import {useEffect, useState} from "react";
 import styled from "styled-components";
 import axios from "axios";
 import Loading from "../utils/Loading.jsx";
@@ -8,7 +8,7 @@ const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
 const apiShowTimeUrl = import.meta.env.VITE_API_SHOW_TIME_URL
 
 // eslint-disable-next-line react/prop-types
-function ScreeningModal({onClose, onRefresh}) {
+function ScreeningModal({onClose, onRefresh, data}) {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedMovie, setSelectedMovie] = useState("");
     const [duration, setDuration] = useState(0);
@@ -21,7 +21,10 @@ function ScreeningModal({onClose, onRefresh}) {
     const [movies, setMovies] = useState([]);
     const [branches, setBranches] = useState([]);
     const [minDate, setMinDate] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const [loading, setLoading] = useState(true);
+
+    console.log(data)
 
     useEffect(() => {
         const fetchBranches = async () => {
@@ -83,6 +86,49 @@ function ScreeningModal({onClose, onRefresh}) {
         }
     }, [selectedBranch, branches]);
 
+    const checkScheduleConflict = (selectedStartTime, selectedDuration) => {
+        const selectedStart = new Date(`${selectedDate}T${selectedStartTime}:00.000Z`);
+        const selectedEnd = new Date(selectedStart.getTime() + selectedDuration * 60000);
+
+        // eslint-disable-next-line react/prop-types
+        const conflictingShowtime = data.some(showtime => {
+            const existingStart = new Date(showtime.start_time);
+            const existingEnd = new Date(existingStart.getTime() + showtime.duration * 60000);
+
+            const isSameDay =
+                existingStart.toISOString().split("T")[0] === selectedDate;
+
+            const isSameBranchAndRoom =
+                showtime.branch_id._id === selectedBranch &&
+                showtime.screen._id === selectedRoom;
+
+            if (isSameDay && isSameBranchAndRoom) {
+                console.log("Đã vào")
+                return (
+                    (selectedStart >= existingStart && selectedStart < existingEnd) ||
+                    (selectedEnd > existingStart && selectedEnd <= existingEnd) ||
+                    (selectedStart <= existingStart && selectedEnd >= existingEnd)
+                );
+            }
+
+            return false;
+        });
+
+        return conflictingShowtime;
+    };
+
+
+    const handleStartTimeChange = (e) => {
+        const newStartTime = e.target.value;
+
+        if (checkScheduleConflict(newStartTime, duration)) {
+            setErrorMessage("The selected time conflicts with an existing showtime on this date.");
+        } else {
+            setErrorMessage("");
+            setStartTime(newStartTime);
+        }
+    };
+
     const updateMinDate = (movie) => {
         const earlyReleaseDate = movie.early_release_date
             ? new Date(movie.early_release_date)
@@ -109,6 +155,12 @@ function ScreeningModal({onClose, onRefresh}) {
             alert("Please fill out all fields!");
             return;
         }
+
+        if (checkScheduleConflict(startTime, duration)) {
+            setErrorMessage("The selected time conflicts with an existing showtime on this date.");
+            return;
+        }
+
         const startDateTime = `${selectedDate}T${startTime}:00.000Z`;
 
         try {
@@ -130,7 +182,6 @@ function ScreeningModal({onClose, onRefresh}) {
             setLoading(false);
         }
     };
-
 
     return (
         <>
@@ -167,9 +218,11 @@ function ScreeningModal({onClose, onRefresh}) {
                             <input
                                 type="time"
                                 value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
+                                onChange={handleStartTimeChange}
                             />
+                            {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
                         </FormGroup>
+
                         <FormGroup>
                             <LabelCustom>Vip Price:</LabelCustom>
                             <input
@@ -294,4 +347,10 @@ const TitleCustom = styled.h3`
 const LabelCustom = styled.label`
     font-size: 1.2rem;
     font-weight: bold;
+`;
+
+const ErrorText = styled.p`
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 5px;
 `;
