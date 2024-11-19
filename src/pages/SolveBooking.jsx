@@ -1,13 +1,12 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import Header from '../utils/User/Header.jsx';
-import Footer from '../utils/User/Footer.jsx';
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
+import {useLocation} from "react-router-dom";
+import Loading from "../../utils/Loading.jsx";
+import Footer from "../../utils/User/Footer.jsx";
+import Header from "../../utils/User/Header.jsx";
 
-// Styled components
 const Container = styled.div`
     padding: 100px 20px;
     text-align: center;
@@ -81,25 +80,25 @@ const Seat = styled.div`
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background-color: ${({ status, type }) => {
-        if (status === 'booked') return '#4a4a4a'; 
-        if (status === 'selected') return '#42e0f5'; 
-        if (type === 'vip') return '#f1c40f'; 
-        return '#bdc3c7'; 
+    background-color: ${({status, type}) => {
+        if (status === 'booked') return '#4a4a4a';
+        if (status === 'selected') return '#42e0f5';
+        if (type === 'vip') return '#f1c40f';
+        return '#bdc3c7';
     }};
-    color: ${({ status }) => (status === 'booked' ? '#ffffff' : '#000000')};
+    color: ${({status}) => (status === 'booked' ? '#ffffff' : '#000000')};
     margin: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: ${({ status }) => (status === 'booked' ? 'not-allowed' : 'pointer')};
+    cursor: ${({status}) => (status === 'booked' ? 'not-allowed' : 'pointer')};
     user-select: none;
     transition: background-color 0.3s ease, color 0.3s ease;
 
     &:hover {
-        background-color: ${({ status }) =>
-            status === 'available' ? '#4caf50' : ''}; // Bright green for hover effect on available seats
-        transform: ${({ status }) => (status === 'available' ? 'scale(1.1)' : 'none')};
+        background-color: ${({status}) =>
+                status === 'available' ? '#4caf50' : ''};
+        transform: ${({status}) => (status === 'available' ? 'scale(1.1)' : 'none')};
     }
 `;
 const DetailsContainer = styled.div`
@@ -288,7 +287,7 @@ const LegendItem = styled.div`
 const LegendColor = styled.div`
     width: 20px;
     height: 20px;
-    background-color: ${({ color }) => color};
+    background-color: ${({color}) => color};
     margin-right: 5px;
     border-radius: 5px;
 `;
@@ -317,6 +316,7 @@ const TotalPriceContainer = styled.div`
         color: #42e0f5;
         font-weight: bold;
     }
+
     .total-amount {
         color: #4caf50;
         font-weight: bold;
@@ -324,8 +324,8 @@ const TotalPriceContainer = styled.div`
     }
 `;
 
-const generateSeats = (bookedSeats) => {
-    const rows = 'ABCDEFGHIJ'.split(''); 
+const generateSeats = (bookedSeats, vipPrice, normalPrice) => {
+    const rows = 'ABCDEFGHIJ'.split('');
     const seatsPerRow = 12;
     const seats = [];
 
@@ -336,7 +336,7 @@ const generateSeats = (bookedSeats) => {
             rowSeats.push({
                 seatId,
                 status: bookedSeats.includes(seatId) ? 'booked' : 'available',
-                price: row >= 'D' && row <= 'G' ? 75000 : 50000, 
+                price: row >= 'D' && row <= 'G' ? vipPrice : normalPrice,
                 type: row >= 'D' && row <= 'G' ? 'vip' : 'regular',
             });
         }
@@ -345,31 +345,39 @@ const generateSeats = (bookedSeats) => {
 
     return seats;
 };
-function SolveBooking({ onLogout }) { 
+
+// eslint-disable-next-line react/prop-types
+function SolveBooking({onLogout}) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { showTimeDetails, filmDetails } = location.state || {}; 
+    const {showTimeDetails, filmDetails} = location.state || {};
     const [seats, setSeats] = useState([]);
     const [selectedSeats, setSelectedSeats] = useState([]);
-    const [voucherCode, setVoucherCode] = useState(''); 
-    const [discount, setDiscount] = useState(0); 
+    const [voucherCode, setVoucherCode] = useState('');
+    const [discount, setDiscount] = useState(0);
     const [voucherError, setVoucherError] = useState('');
     const [voucherSuccess, setVoucherSuccess] = useState('');
     const [showNotification, setShowNotification] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    console.log("showTimeDetails", showTimeDetails);
 
     useEffect(() => {
         const fetchSeatsAndDetails = async () => {
             if (showTimeDetails) {
                 try {
+                    setIsLoading(true)
                     const response = await axios.get(
                         `http://localhost:3000/api/v1/payment/${showTimeDetails._id}/showtime`
                     );
 
                     const bookedSeats = response.data.flatMap((payment) => payment.list_seat);
 
-                    setSeats(generateSeats(bookedSeats));
+                    setSeats(generateSeats(bookedSeats, showTimeDetails.vip_price, showTimeDetails.normal_price));
+                    setIsLoading(false);
                 } catch (error) {
                     console.error("Error fetching payment details:", error);
+                    setIsLoading(false);
                 }
             }
         };
@@ -383,15 +391,15 @@ function SolveBooking({ onLogout }) {
         const discountedPrice = discount ? seatPrice * (1 - discount / 100) : seatPrice;
         return total + discountedPrice;
     }, 0);
-        
-    
+
+
     const handleSeatClick = (rowIndex, seatIndex) => {
         const seatId = seats[rowIndex][seatIndex].seatId;
-    
+
         if (seats[rowIndex][seatIndex].status === 'booked') {
             return;
         }
-    
+
         setSeats((prevSeats) =>
             prevSeats.map((row, i) =>
                 i === rowIndex
@@ -406,7 +414,7 @@ function SolveBooking({ onLogout }) {
                     : row
             )
         );
-    
+
         setSelectedSeats((prevSelectedSeats) => {
             if (prevSelectedSeats.includes(seatId)) {
                 return prevSelectedSeats.filter((s) => s !== seatId);
@@ -415,8 +423,6 @@ function SolveBooking({ onLogout }) {
             }
         });
     };
-
-    const [isLoading, setIsLoading] = useState(false);
 
     const applyVoucher = async () => {
         setIsLoading(true);
@@ -427,7 +433,7 @@ function SolveBooking({ onLogout }) {
                 code: voucherCode,
             });
 
-            const { discountPercent } = response.data;
+            const {discountPercent} = response.data;
             setDiscount(discountPercent);
             setVoucherSuccess(`Áp dụng mã giảm giá thành công! Bạn được giảm ${discountPercent}%`);
             setShowNotification(true);
@@ -446,13 +452,19 @@ function SolveBooking({ onLogout }) {
             alert("Vui lòng chọn ít nhất một ghế!");
             return;
         }
-    
         setIsPaymentLoading(true);
-    
         try {
-            const token = localStorage.getItem("authToken");
-            if (!token) {
+            const tokenString = localStorage.getItem("token");
+            if (!tokenString) {
                 alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thanh toán!");
+                setIsPaymentLoading(false);
+                return;
+            }
+            const parsedToken = JSON.parse(tokenString);
+            const token = parsedToken?.token;
+    
+            if (!token) {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
                 setIsPaymentLoading(false);
                 return;
             }
@@ -461,9 +473,7 @@ function SolveBooking({ onLogout }) {
                 const seat = seats.flat().find((s) => s.seatId === seatId);
                 return total + (seat ? seat.price : 0);
             }, 0);
-    
             console.log("Tổng số tiền thanh toán:", totalAmount);
-         
             const createOrderResponse = await axios.post(
                 "http://localhost:3000/api/v1/zalopay/create-order",
                 {
@@ -477,39 +487,45 @@ function SolveBooking({ onLogout }) {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            
             console.log("Kết quả từ API create-order:", createOrderResponse.data);
             const { order_url } = createOrderResponse.data;
             window.location.href = order_url;
         } catch (error) {
-            console.error("Lỗi trong quá trình thanh toán:", error.message);
-            alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
+            if (error.response?.data?.EM === "Invalid token.") {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+            } else {
+                alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            }
         } finally {
             setIsPaymentLoading(false);
         }
     };
-    
     const handlePaymentMoMo = async () => {
         if (selectedSeats.length === 0) {
             alert("Vui lòng chọn ít nhất một ghế!");
             return;
         }
-    
         setIsPaymentLoading(true);
-    
         try {
-            const token = localStorage.getItem("authToken");
-            if (!token) {
+            const tokenString = localStorage.getItem("token");
+            if (!tokenString) {
                 alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thanh toán!");
                 setIsPaymentLoading(false);
                 return;
             }
+            const parsedToken = JSON.parse(tokenString);
+            const token = parsedToken?.token;
     
+            if (!token) {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+                setIsPaymentLoading(false);
+                return;
+            }
             const totalAmount = selectedSeats.reduce((total, seatId) => {
                 const seat = seats.flat().find((s) => s.seatId === seatId);
                 return total + (seat ? seat.price : 0);
             }, 0);
-    
             console.log("Tổng số tiền thanh toán:", totalAmount);
             const createOrderResponse = await axios.post(
                 "http://localhost:3000/api/v1/payment/momopay",
@@ -521,125 +537,137 @@ function SolveBooking({ onLogout }) {
                     paid_amount: totalAmount - (totalAmount * discount) / 100,
                 },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: { Authorization: `Bearer ${token}` }, 
                 }
             );
-            console.log("Kết quả từ API create-order:", createOrderResponse.data.data.shortLink);
-            window.location.href = createOrderResponse.data.data.shortLink;
-    
+            console.log("Kết quả từ API create-order:", createOrderResponse.data);
+            const { shortLink } = createOrderResponse.data.data; 
+            window.location.href = shortLink; 
         } catch (error) {
-            console.error("Error in payment process:", error.message);
-            alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
+            if (error.response?.data?.EM === "Invalid token.") {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+            } else {
+                alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            }
         } finally {
             setIsPaymentLoading(false);
         }
     };
-
+    
     return (
-        <Container>
-            <BackButton onClick={() => navigate(-1)}>Quay lại</BackButton>
-            <Header onLogout={onLogout} /> 
-            <BodyWrapper>
-                <SeatMapContainer>
-                    <Screen>Màn hình chiếu</Screen>
-                    <SeatMap>
-                        {seats.map((row, rowIndex) => (
-                            <Row key={rowIndex}>
-                                {row.map((seat, seatIndex) => (
-                                    <Seat
-                                    key={seat.seatId}
-                                    status={seat.status}
-                                    type={seat.type}
-                                    onClick={() => handleSeatClick(rowIndex, seatIndex)}
-                                >
-                                    {seat.seatId}
-                                </Seat>
-                                
-                                ))}
-                            </Row>
-                        ))}
-                    </SeatMap>
-                    <Legend>
-                        <LegendItem>
-                            <LegendColor color="#bdc3c7" /> Ghế thường
-                        </LegendItem>
-                        <LegendItem>
-                            <LegendColor color="#f1c40f" /> Ghế VIP
-                        </LegendItem>
-                        <LegendItem>
-                            <LegendColor color="#42e0f5" /> Ghế đang chọn
-                        </LegendItem>
-                        <LegendItem>
-                            <LegendColor color="#4a4a4a" /> Ghế đã đặt
-                        </LegendItem>
-                    </Legend>
-                </SeatMapContainer>
-                <DetailsContainer>
-                    {filmDetails && (
-                        <>
-                            <TitleContentWrapper>
-                                <MovieThumbnail src={filmDetails.image_url} alt="Movie Poster" />
-                                <MovieDetails>
-                                    <h3>{filmDetails.film_name}</h3>
-                                    <p>{filmDetails.category_id?.category_name || "N/A"}</p>
-                                </MovieDetails>
-                            </TitleContentWrapper>
-                            <MovieInfo>
-                                <MovieAttribute>
-                                    <strong>Thể loại:</strong> {filmDetails.category_id?.category_name || "N/A"}
-                                </MovieAttribute>
-                                <MovieAttribute>
-                                    <strong>Thời lượng:</strong> {filmDetails.duration || "N/A"} phút
-                                </MovieAttribute>
-                                <MovieAttribute>
-                                    <strong>Rạp chiếu:</strong> {showTimeDetails.branch_id.branch_name || "N/A"}
-                                </MovieAttribute>
-                                <MovieAttribute>
-                                    <strong>Ngày chiếu:</strong> {new Date(showTimeDetails.start_time).toLocaleDateString()}
-                                </MovieAttribute>
-                                <MovieAttribute>
-                                    <strong>Giờ chiếu:</strong> {new Date(showTimeDetails.start_time).toLocaleTimeString()}
-                                </MovieAttribute>
-                            </MovieInfo>
-                            <DiscountWrapper>
-                                <VoucherCustom>Voucher</VoucherCustom>
-                                <InputCustom
-                                    value={voucherCode}
-                                    onChange={(e) => setVoucherCode(e.target.value)}
-                                    placeholder="Nhập mã voucher"
-                                />
-                                <ButtonVoucherCustom onClick={applyVoucher} disabled={isLoading}>
-                                    {isLoading ? 'Áp dụng' : 'Áp dụng'}
-                                </ButtonVoucherCustom>
-                            </DiscountWrapper>
-                        </>
-                    )}
-                    <TotalPriceContainer>
-                        <p>
-                            <strong>Tổng số tiền:</strong> <span className="total-amount">{totalPrice.toLocaleString()} VND</span>
-                        </p>
-                    </TotalPriceContainer>
-                    <MoMoButton onClick={handlePaymentMoMo} disabled={isPaymentLoading || selectedSeats.length === 0}>
-                        {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
-                        <img src="/images/momo.png" alt="MoMo" width="24" height="24" />
-                    </MoMoButton>
-                    <ZaloButton onClick={handlePaymentZalo} disabled={isPaymentLoading || selectedSeats.length === 0}>
-                        {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
-                        <img src="/images/zalopay.png" alt="ZaloPay" width="24" height="24" />
-                    </ZaloButton>
-                </DetailsContainer>
-            </BodyWrapper>
-            <Footer />
-            {showNotification && (
-                <NotificationModal>
-                    <NotificationContent>
-                        <NotificationTitle>{voucherSuccess ? 'Thành công' : 'Lỗi'}</NotificationTitle>
-                        <NotificationText>{voucherSuccess || voucherError}</NotificationText>
-                        <CloseButton onClick={() => setShowNotification(false)}>Đóng</CloseButton>
-                    </NotificationContent>
-                </NotificationModal>
-            )}
-        </Container>
+        <>
+            {isLoading && <Loading/>}
+            <Container>
+                <BackButton onClick={() => navigate(-1)}>Quay lại</BackButton>
+                <Header onLogout={onLogout}/>
+                <BodyWrapper>
+                    <SeatMapContainer>
+                        <Screen>Màn hình chiếu</Screen>
+                        <SeatMap>
+                            {seats.map((row, rowIndex) => (
+                                <Row key={rowIndex}>
+                                    {row.map((seat, seatIndex) => (
+                                        <Seat
+                                            key={seat.seatId}
+                                            status={seat.status}
+                                            type={seat.type}
+                                            onClick={() => handleSeatClick(rowIndex, seatIndex)}
+                                        >
+                                            {seat.seatId}
+                                        </Seat>
+
+                                    ))}
+                                </Row>
+                            ))}
+                        </SeatMap>
+                        <Legend>
+                            <LegendItem>
+                                <LegendColor color="#bdc3c7"/> Ghế thường
+                            </LegendItem>
+                            <LegendItem>
+                                <LegendColor color="#f1c40f"/> Ghế VIP
+                            </LegendItem>
+                            <LegendItem>
+                                <LegendColor color="#42e0f5"/> Ghế đang chọn
+                            </LegendItem>
+                            <LegendItem>
+                                <LegendColor color="#4a4a4a"/> Ghế đã đặt
+                            </LegendItem>
+                        </Legend>
+                    </SeatMapContainer>
+                    <DetailsContainer>
+                        {filmDetails && (
+                            <>
+                                <TitleContentWrapper>
+                                    <MovieThumbnail src={filmDetails.image_url} alt="Movie Poster"/>
+                                    <MovieDetails>
+                                        <h3>{filmDetails.film_name}</h3>
+                                        <p>{filmDetails.category_id?.category_name || "N/A"}</p>
+                                    </MovieDetails>
+                                </TitleContentWrapper>
+                                <MovieInfo>
+                                    <MovieAttribute>
+                                        <strong>Thể loại:</strong> {filmDetails.category_id?.category_name || "N/A"}
+                                    </MovieAttribute>
+                                    <MovieAttribute>
+                                        <strong>Thời lượng:</strong> {filmDetails.duration || "N/A"} phút
+                                    </MovieAttribute>
+                                    <MovieAttribute>
+                                        <strong>Rạp chiếu:</strong> {showTimeDetails.branch_id.branch_name || "N/A"}
+                                    </MovieAttribute>
+                                    <MovieAttribute>
+                                        <strong>Ngày
+                                            chiếu:</strong> {new Date(showTimeDetails.start_time).toISOString().split('T')[0].split('-').reverse().join('/')}
+                                    </MovieAttribute>
+                                    <MovieAttribute>
+                                        <strong>Giờ
+                                            chiếu:</strong> {showTimeDetails.start_time.substring(11, 16)}
+                                    </MovieAttribute>
+                                </MovieInfo>
+                                <DiscountWrapper>
+                                    <VoucherCustom>Voucher</VoucherCustom>
+                                    <InputCustom
+                                        value={voucherCode}
+                                        onChange={(e) => setVoucherCode(e.target.value)}
+                                        placeholder="Nhập mã voucher"
+                                    />
+                                    <ButtonVoucherCustom onClick={applyVoucher} disabled={isLoading}>
+                                        {isLoading ? 'Áp dụng' : 'Áp dụng'}
+                                    </ButtonVoucherCustom>
+                                </DiscountWrapper>
+                            </>
+                        )}
+                        <TotalPriceContainer>
+                            <p>
+                                <strong>Tổng số tiền:</strong> <span
+                                className="total-amount">{totalPrice.toLocaleString()} VND</span>
+                            </p>
+                        </TotalPriceContainer>
+                        <MoMoButton onClick={handlePaymentMoMo}
+                                    disabled={isPaymentLoading || selectedSeats.length === 0}>
+                            {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
+                            <img src="/images/momo.png" alt="MoMo" width="24" height="24"/>
+                        </MoMoButton>
+                        <ZaloButton onClick={handlePaymentZalo}
+                                    disabled={isPaymentLoading || selectedSeats.length === 0}>
+                            {isPaymentLoading ? 'Đang xử lý...' : 'Xác nhận đặt vé bằng'}
+                            <img src="/images/zalopay.png" alt="ZaloPay" width="24" height="24"/>
+                        </ZaloButton>
+                    </DetailsContainer>
+                </BodyWrapper>
+                <Footer/>
+                {showNotification && (
+                    <NotificationModal>
+                        <NotificationContent>
+                            <NotificationTitle>{voucherSuccess ? 'Thành công' : 'Lỗi'}</NotificationTitle>
+                            <NotificationText>{voucherSuccess || voucherError}</NotificationText>
+                            <CloseButton onClick={() => setShowNotification(false)}>Đóng</CloseButton>
+                        </NotificationContent>
+                    </NotificationModal>
+                )}
+            </Container>
+        </>
     );
 }
 
