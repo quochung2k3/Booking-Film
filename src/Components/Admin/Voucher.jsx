@@ -95,9 +95,8 @@ function Voucher() {
                 <VouchersTable>
                     <thead>
                     <tr>
-                        <th>Voucher ID</th>
-                        <th>Discount Name</th>
-                        <th>Discount Code</th>
+                        <th>Voucher Name</th>
+                        <th>Voucher Code</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Quantity</th>
@@ -111,7 +110,6 @@ function Voucher() {
                     {vouchers.length > 0 ? (
                         vouchers.map((voucherItem, index) => (
                             <tr key={index}>
-                                <td>{voucherItem._id}</td>
                                 <td>{voucherItem.discount_name}</td>
                                 <td>{voucherItem.discount_code}</td>
                                 <td>{new Date(voucherItem.start_date).toLocaleDateString()}</td>
