@@ -1,15 +1,16 @@
 ﻿import styled from 'styled-components';
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom'; // Import useNavigate
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-// Styled components
+// Styled components giữ nguyên
 const ModalContainer = styled.div`
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,21 +18,22 @@ const ModalContainer = styled.div`
 `;
 
 const ModalContent = styled.div`
-    background: white;
-    padding: 20px 40px;
-    border-radius: 10px;
+    background: #2c2c2c;
+    padding: 30px 50px;
+    border-radius: 20px;
     width: 80%;
-    max-width: 800px;
+    max-width: 900px;
     text-align: left;
     position: relative;
-    min-height: 20vh;
+    min-height: 30vh;
     max-height: 80vh;
     overflow-y: auto;
+    color: #fff;
 `;
 
 const CloseButton = styled.button`
     background-color: transparent;
-    color: #333;
+    color: #fff;
     border: none;
     font-size: 2rem;
     padding: 0 10px;
@@ -39,61 +41,84 @@ const CloseButton = styled.button`
     top: 10px;
     right: 10px;
     cursor: pointer;
+    transition: color 0.3s;
+
+    &:hover {
+        color: #e50914;
+    }
 `;
 
 const Title = styled.h2`
-    font-size: 18px;
+    font-size: 24px;
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    color: #ffcd32;
 `;
 
 const BranchSelect = styled.select`
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: 15px;
+    margin-bottom: 30px;
     font-size: 16px;
+    border-radius: 10px;
+    border: 2px solid #555;
+    background-color: #1b1b1b;
+    color: #fff;
+
+    &:focus {
+        border-color: #e50914;
+        outline: none;
+    }
 `;
 
 const DateTabs = styled.div`
     display: flex;
     justify-content: center;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #555;
 `;
 
 const DateTab = styled.div`
-    margin: 0 10px;
-    padding: 10px 15px;
+    margin: 0 15px;
+    padding: 15px 20px;
     cursor: pointer;
     font-weight: bold;
-    color: ${(props) => (props.active ? '#007bff' : '#000')};
-    border-bottom: ${(props) => (props.active ? '3px solid #007bff' : 'none')};
+    color: ${(props) => (props.active ? '#ffcd32' : '#aaa')};
+    border-bottom: ${(props) => (props.active ? '4px solid #ffcd32' : 'none')};
     transition: color 0.3s, border-bottom 0.3s;
 
     &:hover {
-        color: #007bff;
+        color: #ffcd32;
     }
 `;
 
 const ShowTimeContainer = styled.div`
-    margin-top: 20px;
+    margin-top: 30px;
     text-align: center;
 `;
 
 const ShowTimeGroup = styled.div`
     margin-bottom: 3rem;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2rem;
 `;
 
 const StyledShowTime = styled.div`
     position: relative;
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
+    background-color: #333;
+    padding: 15px;
+    border-radius: 10px;
     margin-bottom: 10px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+
+    &:hover {
+        transform: scale(1.05);
+        background-color: #444;
+    }
 `;
 
 const StyledSpan = styled.span`
@@ -101,56 +126,106 @@ const StyledSpan = styled.span`
     top: 110%;
     right: 0;
     left: 0;
-    font-size: 12px;
-    color: #666;
+    font-size: 14px;
+    color: #bbb;
     cursor: default;
 `;
 
 const TimeSlot = styled.div`
     padding: 0.5rem 1rem;
     font-weight: bold;
+    color: #ffcd32;
 `;
 
-// eslint-disable-next-line react/prop-types
-function BookingModal({movieTitle, onClose, showTimes = []}) {
-    const navigate = useNavigate(); // Use useNavigate hook
+function BookingModal({ movieTitle, movieId, onClose }) {
+    const navigate = useNavigate();
+    const [showTimes, setShowTimes] = useState([]);
+    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedDate, setSelectedDate] = useState('');
 
-    let firstChoiceBranch = showTimes.length > 0 ? showTimes[0].branch.branch_id : '';
-    let firstChoiceDate = showTimes
-        .filter((showTime) => showTime.branch.branch_id === firstChoiceBranch)
-        .map((showTime) => new Date(showTime.date))
-        .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
+    useEffect(() => {
+        const fetchShowTimes = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3000/api/v1/showtime/${movieId}/film`);
+                const data = response.data; 
+                setShowTimes(data); 
+    
+                if (data.length > 0) {
+                    const firstBranch = data[0].branch_id?._id || '';
+                    setSelectedBranch(firstBranch);
+    
+                    const firstDate = data
+                        .filter((showTime) => showTime.branch_id?._id === firstBranch)
+                        .map((showTime) => new Date(showTime.start_time))
+                        .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
+    
+                    setSelectedDate(firstDate);
+                }
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách suất chiếu:', error);
+            }
+        };
+    
+        fetchShowTimes();
+    }, [movieId]);
+    
+    const uniqueBranches = Array.from(
+        new Map(
+            showTimes
+                .filter((showTime) => showTime.branch_id && showTime.branch_id.branch_name)
+                .map((showTime) => [showTime.branch_id._id, showTime.branch_id])
+        ).values()
+    );
 
-    const [selectedBranch, setSelectedBranch] = useState(firstChoiceBranch);
-    const [selectedDate, setSelectedDate] = useState(firstChoiceDate);
+    const filteredShowTimes = showTimes.filter(
+        (showTime) => showTime.branch_id._id === selectedBranch
+    );
 
-    const uniqueBranches = Array.from(new Map(showTimes.map((showTime) => [showTime.branch.branch_id, showTime.branch])).values());
-
-    const handleDateClick = (date) => {
-        setSelectedDate(date);
-    };
+    const groupedShowTimes = filteredShowTimes.reduce((acc, showTime) => {
+        const date = new Date(showTime.start_time).toISOString().split('T')[0];
+        if (!acc[date]) {
+            acc[date] = [];
+        }
+        acc[date].push(showTime);
+        return acc;
+    }, {});
 
     const handleBranchChange = (event) => {
         const newBranchId = event.target.value;
         setSelectedBranch(newBranchId);
 
-        const newFirstChoiceDate = showTimes
-            .filter((showTime) => showTime.branch.branch_id === Number(newBranchId))
-            .map((showTime) => new Date(showTime.date))
+        const newFirstDate = showTimes
+            .filter((showTime) => showTime.branch_id._id === newBranchId)
+            .map((showTime) => new Date(showTime.start_time))
             .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
 
-        setSelectedDate(newFirstChoiceDate);
+        setSelectedDate(newFirstDate);
     };
 
-    const filteredShowTimes = showTimes.filter((showTime) => showTime.branch.branch_id === Number(selectedBranch));
+    const handleDateClick = (date) => {
+        setSelectedDate(date);
+    };
 
-    const groupedShowTimes = filteredShowTimes.reduce((acc, showTime) => {
-        if (!acc[showTime.date]) {
-            acc[showTime.date] = [];
-        }
-        acc[showTime.date].push(showTime);
-        return acc;
-    }, {});
+    const handleTimeSlotClick = (showTime) => {
+        const filmId = showTime.film_id._id;
+        const branchName = showTime.branch_id.branch_name;
+    
+        axios
+            .get(`http://localhost:3000/api/v1/film/${filmId}`)
+            .then((filmResponse) => {
+                const filmDetails = filmResponse.data;
+    
+                navigate(`/user/booking/${showTime._id}`, {
+                    state: {
+                        showTimeDetails: showTime,
+                        filmDetails: filmDetails,
+                    },
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching film details:", error);
+            });
+    };
 
     const handleOutsideClick = (event) => {
         if (event.target === event.currentTarget) {
@@ -158,20 +233,18 @@ function BookingModal({movieTitle, onClose, showTimes = []}) {
         }
     };
 
-    const handleTimeSlotClick = (showTime) => {
-        navigate(`/user/booking/${showTime.show_time_id}`);
-    };
-
     return (
         <ModalContainer onClick={handleOutsideClick}>
             <ModalContent>
                 <CloseButton onClick={onClose}>×</CloseButton>
                 <Title>LỊCH CHIẾU - {movieTitle}</Title>
-
-                <BranchSelect value={selectedBranch} onChange={handleBranchChange}>
+                <BranchSelect
+                    value={selectedBranch}
+                    onChange={handleBranchChange}
+                >
                     <option value="">Chọn rạp</option>
                     {uniqueBranches.map((branch) => (
-                        <option key={branch.branch_id} value={branch.branch_id}>
+                        <option key={branch._id} value={branch._id}>
                             {branch.branch_name}
                         </option>
                     ))}
@@ -184,7 +257,7 @@ function BookingModal({movieTitle, onClose, showTimes = []}) {
                             active={date === selectedDate}
                             onClick={() => handleDateClick(date)}
                         >
-                            {new Date(date).getDate()}/{new Date(date).getMonth() + 1} - T{new Date(date).getDay() + 1}
+                            {new Date(date).getDate()}/{new Date(date).getMonth() + 1}
                         </DateTab>
                     ))}
                 </DateTabs>
@@ -193,10 +266,9 @@ function BookingModal({movieTitle, onClose, showTimes = []}) {
                     {groupedShowTimes[selectedDate] ? (
                         <ShowTimeGroup>
                             {groupedShowTimes[selectedDate].map((showTime) => (
-                                <StyledShowTime key={showTime.show_time_id}
-                                                onClick={() => handleTimeSlotClick(showTime)}>
-                                    <TimeSlot>{showTime.start_time}</TimeSlot>
-                                    <StyledSpan>ghế trống</StyledSpan>
+                                <StyledShowTime key={showTime._id} onClick={() => handleTimeSlotClick(showTime)}>
+                                    <TimeSlot>{new Date(showTime.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TimeSlot>
+                                    <StyledSpan>Màn hình: {showTime.screen.screen_name}</StyledSpan>
                                 </StyledShowTime>
                             ))}
                         </ShowTimeGroup>
@@ -204,7 +276,6 @@ function BookingModal({movieTitle, onClose, showTimes = []}) {
                         <p>Không có suất chiếu cho ngày đã chọn.</p>
                     )}
                 </ShowTimeContainer>
-
             </ModalContent>
         </ModalContainer>
     );

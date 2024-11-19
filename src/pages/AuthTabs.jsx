@@ -8,7 +8,6 @@ const apiSendOTPUrl = import.meta.env.VITE_API_AUTH_SEND_OTP_URL
 const apiResetPassUrl = import.meta.env.VITE_API_AUTH_RESET_PASS_URL
 const apiVerifyOTPUrl = import.meta.env.VITE_API_AUTH_VERIFY_OTP_URL
 
-// eslint-disable-next-line react/prop-types
 function AuthTabs({onLogin}) {
     const [activeTab, setActiveTab] = useState("signIn");
     const [signInData, setSignInData] = useState({username: "", password: ""});
@@ -47,6 +46,7 @@ function AuthTabs({onLogin}) {
             alert("Invalid credentials");
         }
     };
+    
 
     const handleSignUpSubmit = async (e) => {
         e.preventDefault();

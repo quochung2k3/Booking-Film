@@ -3,8 +3,10 @@ import {Route, Routes, Navigate} from 'react-router-dom';
 import AuthTabs from './pages/AuthTabs.jsx';
 import Admin from './pages/Admin.jsx';
 import User from './pages/User.jsx';
-import SolveBooking from "./Components/User/SolveBooking.jsx";
 import BookingHistory from "./Components/User/BookingHistory.jsx";
+import SolveBooking from "./pages/SolveBooking.jsx";
+import TransactionStatus from "./pages/TransactionStatus.jsx";
+
 
 function App() {
     const [roleId, setRoleId] = useState(null);
@@ -66,7 +68,9 @@ function App() {
                         : <Navigate to="/user"/>
                 }
             />
-            <Route path="*" element={<Navigate to="/"/>}/>
+            <Route path="/transaction-status" element={<TransactionStatus />} />
+            {/* Các route khác */}
+            <Route path="*" element={<Navigate to="/"/>}/> 
         </Routes>
     );
 }
