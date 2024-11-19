@@ -106,7 +106,7 @@ function MovieScreenings() {
                     </tbody>
                 </ScreeningsTable>
                 {showModal && (
-                    <ScreeningModal onClose={handleCloseModal} onRefresh={fetchScreenings}/>
+                    <ScreeningModal onClose={handleCloseModal} onRefresh={fetchScreenings} data={screeningsList}/>
                 )}
             </Container>
         </>

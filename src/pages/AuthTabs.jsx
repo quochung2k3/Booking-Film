@@ -36,10 +36,10 @@ function AuthTabs({onLogin}) {
                 {email: username, password}
             );
             console.log(response.data);
-            if (response.data.user.role_id === 1) {
+            if (response.data.user.role_id === 1 && response.data.user.is_active) {
                 onLogin(1, response.data);
                 navigate("/admin");
-            } else if (response.data.user.role_id === 2) {
+            } else if (response.data.user.role_id === 2 && response.data.user.is_active) {
                 onLogin(2, response.data);
                 navigate("/");
             }
