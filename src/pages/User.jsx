@@ -1,12 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import {useState, useEffect} from 'react';
 import styled from 'styled-components';
 import Header from "../utils/User/Header.jsx";
 import Footer from "../utils/User/Footer.jsx";
 import BookingModal from "../modal/BookingModal.jsx";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import axios from 'axios';
+import LoginAlertModal from "../Components/User/LoginAlertModal.jsx";
 
-// Styled components
 const Container = styled.div`
     padding-top: 80px;
     padding-bottom: 60px;
@@ -198,18 +198,29 @@ const BuyTicketButton = styled.button`
     }
 `;
 
-const MovieDetailModal = ({ movie, onClose, onBuyTicket }) => (
+// eslint-disable-next-line react/prop-types
+const MovieDetailModal = ({movie, onClose, onBuyTicket}) => (
     <ModalOverlay>
         <ModalContent>
-            <MovieDetailImage src={movie.image_url} alt={movie.film_name} />
+            {/* eslint-disable-next-line react/prop-types */}
+            <MovieDetailImage src={movie.image_url} alt={movie.film_name}/>
             <MovieDetailInfo>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailHeading>{movie.film_name}</MovieDetailHeading>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Mô tả:</strong> {movie.description}</MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Thể loại:</strong> {movie.category_id?.category_name}</MovieDetailText>
-                <MovieDetailText><strong>Ngày phát hành:</strong> {new Date(movie.release_date).toLocaleDateString()}</MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
+                <MovieDetailText><strong>Ngày phát hành:</strong> {new Date(movie.release_date).toLocaleDateString()}
+                </MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Thời lượng:</strong> {movie.duration} phút</MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Quốc gia:</strong> {movie.country}</MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Đạo diễn:</strong> {movie.director}</MovieDetailText>
+                {/* eslint-disable-next-line react/prop-types */}
                 <MovieDetailText><strong>Diễn viên:</strong> {movie.list_actor?.join(', ')}</MovieDetailText>
                 <ButtonGroup>
                     <BuyTicketButton onClick={() => onBuyTicket(movie)}>Mua vé</BuyTicketButton>
@@ -221,12 +232,14 @@ const MovieDetailModal = ({ movie, onClose, onBuyTicket }) => (
     </ModalOverlay>
 );
 
-function MovieList({ dataBookingFilm, onMovieClick, onBuyTicket }) {
+// eslint-disable-next-line react/prop-types
+function MovieList({dataBookingFilm, onMovieClick, onBuyTicket}) {
     return (
         <MovieListContainer>
+            {/* eslint-disable-next-line react/prop-types */}
             {dataBookingFilm.map((movie) => (
                 <MovieCard key={movie._id}>
-                    <MovieImage src={movie.image_url} alt={movie.film_name} onClick={() => onMovieClick(movie)} />
+                    <MovieImage src={movie.image_url} alt={movie.film_name} onClick={() => onMovieClick(movie)}/>
                     <MovieTitle>{movie.film_name}</MovieTitle>
                     <MovieInfo>Thể loại: {movie.category_id?.category_name || "N/A"}</MovieInfo>
                     <MovieInfo>Thời lượng: {movie.duration} phút</MovieInfo>
@@ -237,7 +250,8 @@ function MovieList({ dataBookingFilm, onMovieClick, onBuyTicket }) {
     );
 }
 
-function User({ onLogout }) {
+// eslint-disable-next-line react/prop-types
+function User({onLogout}) {
     const [activeTab, setActiveTab] = useState('PHIM SẮP CHIẾU');
     const [filteredMovies, setFilteredMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -278,9 +292,9 @@ function User({ onLogout }) {
     };
 
     const handleBuyTicketClick = (movie) => {
-        const token = localStorage.getItem('token'); 
+        const token = localStorage.getItem('token');
         if (!token) {
-            setIsLoginAlertOpen(true); 
+            setIsLoginAlertOpen(true);
             return;
         }
         setSelectedMovie(movie);
@@ -292,10 +306,10 @@ function User({ onLogout }) {
         setSelectedMovie(null);
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setSelectedMovie(null);
-    };
+    // const closeModal = () => {
+    //     setIsModalOpen(false);
+    //     setSelectedMovie(null);
+    // };
 
     const closeLoginAlert = () => {
         setIsLoginAlertOpen(false);
@@ -308,7 +322,7 @@ function User({ onLogout }) {
 
     return (
         <Container>
-            <Header onLogout={onLogout} />
+            <Header onLogout={onLogout}/>
             <TabsContainer>
                 <Tab active={activeTab === 'PHIM SẮP CHIẾU'} onClick={() => handleTabClick('PHIM SẮP CHIẾU')}>
                     PHIM SẮP CHIẾU
@@ -320,21 +334,23 @@ function User({ onLogout }) {
                     SUẤT CHIẾU ĐẶC BIỆT
                 </Tab>
             </TabsContainer>
-            <MovieList dataBookingFilm={filteredMovies} onMovieClick={handleMovieClick} onBuyTicket={handleBuyTicketClick} />
+            <MovieList dataBookingFilm={filteredMovies} onMovieClick={handleMovieClick}
+                       onBuyTicket={handleBuyTicketClick}/>
             {isModalOpen && selectedMovie && (
                 <BookingModal
-                    movieTitle={selectedMovie.film_name} 
+                    movieTitle={selectedMovie.film_name}
                     movieId={selectedMovie._id}
                     onClose={() => setIsModalOpen(false)}
                 />
             )}
             {isLoginAlertOpen && (
-                <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin} />
+                <LoginAlertModal onStay={closeLoginAlert} onRedirect={redirectToLogin}/>
             )}
             {isMovieDetailOpen && selectedMovie && (
-                <MovieDetailModal movie={selectedMovie} onClose={closeMovieDetailModal} onBuyTicket={handleBuyTicketClick} />
+                <MovieDetailModal movie={selectedMovie} onClose={closeMovieDetailModal}
+                                  onBuyTicket={handleBuyTicketClick}/>
             )}
-            <Footer />
+            <Footer/>
         </Container>
     );
 }

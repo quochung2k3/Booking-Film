@@ -4,7 +4,7 @@ import AuthTabs from './pages/AuthTabs.jsx';
 import Admin from './pages/Admin.jsx';
 import User from './pages/User.jsx';
 import BookingHistory from "./Components/User/BookingHistory.jsx";
-import SolveBooking from "./pages/SolveBooking.jsx";
+import SolveBooking from "./Components/User/SolveBooking.jsx";
 import TransactionStatus from "./pages/TransactionStatus.jsx";
 
 
@@ -68,9 +68,9 @@ function App() {
                         : <Navigate to="/user"/>
                 }
             />
-            <Route path="/transaction-status" element={<TransactionStatus />} />
+            <Route path="/transaction-status" element={<TransactionStatus/>}/>
             {/* Các route khác */}
-            <Route path="*" element={<Navigate to="/"/>}/> 
+            <Route path="*" element={<Navigate to="/"/>}/>
         </Routes>
     );
 }
