@@ -97,7 +97,7 @@ const Seat = styled.div`
 
     &:hover {
         background-color: ${({status}) =>
-                status === 'available' ? '#4caf50' : ''}; // Bright green for hover effect on available seats
+                status === 'available' ? '#4caf50' : ''};
         transform: ${({status}) => (status === 'available' ? 'scale(1.1)' : 'none')};
     }
 `;
@@ -602,11 +602,11 @@ function SolveBooking({onLogout}) {
                                     </MovieAttribute>
                                     <MovieAttribute>
                                         <strong>Ngày
-                                            chiếu:</strong> {new Date(showTimeDetails.start_time).toLocaleDateString()}
+                                            chiếu:</strong> {new Date(showTimeDetails.start_time).toISOString().split('T')[0].split('-').reverse().join('/')}
                                     </MovieAttribute>
                                     <MovieAttribute>
                                         <strong>Giờ
-                                            chiếu:</strong> {new Date(showTimeDetails.start_time).toLocaleTimeString()}
+                                            chiếu:</strong> {showTimeDetails.start_time.substring(11, 16)}
                                     </MovieAttribute>
                                 </MovieInfo>
                                 <DiscountWrapper>

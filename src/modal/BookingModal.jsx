@@ -3,7 +3,6 @@ import {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 
-// Styled components giữ nguyên
 const ModalContainer = styled.div`
     position: fixed;
     top: 0;
@@ -212,7 +211,6 @@ function BookingModal({movieTitle, movieId, onClose}) {
 
     const handleTimeSlotClick = (showTime) => {
         const filmId = showTime.film_id._id;
-        // const branchName = showTime.branch_id.branch_name;
 
         axios
             .get(`${apiFilmUrl}${filmId}`)
@@ -271,10 +269,7 @@ function BookingModal({movieTitle, movieId, onClose}) {
                         <ShowTimeGroup>
                             {groupedShowTimes[selectedDate].map((showTime) => (
                                 <StyledShowTime key={showTime._id} onClick={() => handleTimeSlotClick(showTime)}>
-                                    <TimeSlot>{new Date(showTime.start_time).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}</TimeSlot>
+                                    <TimeSlot>{new Date(showTime.start_time).toISOString().substring(11, 16)}</TimeSlot>
                                     <StyledSpan>Màn hình: {showTime.screen.screen_name}</StyledSpan>
                                 </StyledShowTime>
                             ))}

@@ -24,7 +24,6 @@ function ScreeningModal({onClose}) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch active branches
         const fetchBranches = async () => {
             try {
                 setLoading(true);
@@ -47,7 +46,6 @@ function ScreeningModal({onClose}) {
             }
         };
 
-        // Fetch active movies
         const fetchMovies = async () => {
             try {
                 setLoading(true);
@@ -124,7 +122,6 @@ function ScreeningModal({onClose}) {
                 vip_price: parseFloat(vipPrice),
                 normal_price: parseFloat(normalPrice),
             });
-            alert("Showtime created successfully!");
             onClose();
             setLoading(false)
         } catch (error) {
