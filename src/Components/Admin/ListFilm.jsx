@@ -160,6 +160,7 @@ const Card = styled.div`
 const Image = styled.img`
     padding: 1rem;
     height: 240px;
+    width: 100px;
     border-radius: 8px 0 0 8px;
     object-fit: contain;
     flex: 2;
