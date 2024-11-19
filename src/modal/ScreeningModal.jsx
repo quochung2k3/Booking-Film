@@ -105,9 +105,9 @@ function ScreeningModal({onClose, onRefresh, data}) {
             if (isSameDay && isSameBranchAndRoom) {
                 console.log("Đã vào")
                 return (
-                    (selectedStart >= existingStart && selectedStart < existingEnd) || // Bắt đầu trong khoảng thời gian đã có
-                    (selectedEnd > existingStart && selectedEnd <= existingEnd) || // Kết thúc trong khoảng thời gian đã có
-                    (selectedStart <= existingStart && selectedEnd >= existingEnd) // Bao trùm khoảng thời gian đã có
+                    (selectedStart >= existingStart && selectedStart < existingEnd) ||
+                    (selectedEnd > existingStart && selectedEnd <= existingEnd) ||
+                    (selectedStart <= existingStart && selectedEnd >= existingEnd)
                 );
             }
 
