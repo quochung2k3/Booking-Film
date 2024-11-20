@@ -4,14 +4,18 @@ import styled from "styled-components";
 import Loading from "../utils/Loading.jsx";
 
 const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
+const apiCategoryUrl = import.meta.env.VITE_API_CATEGORY_URL
 
 // eslint-disable-next-line react/prop-types
 function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
+    const [categories, setCategories] = useState([]);
     const [countries, setCountries] = useState([]);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    console.log(movie)
     let title = 'Create Movie';
     // eslint-disable-next-line react/prop-types
     if (movie.movieName) {
@@ -20,32 +24,55 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
     const convertDateToInputFormat = (date) => {
         if (!date) return date;
-        // convert dd/mm/yyyy -> yyyy-mm-dd
-        const [day, month, year] = date.split('/');
-        return `${year}-${month}-${day}`;
-    }
+        const parts = date.split('/');
+        if (parts.length === 3) {
+            const [month, day, year] = parts;
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        return date;
+    };
+
 
     // Reset dữ liệu khi mở modal
     useEffect(() => {
-        console.log("movie: ", movie.listActor)
         setMovieData({
+            // eslint-disable-next-line react/prop-types
             id: movie.id,
+            // eslint-disable-next-line react/prop-types
             film_name: movie.movieName,
-            // Thạch chú ý, bên trang list film, category nó để name chứ không phải id
-            category_id: movie.category,
-
-            // movie.duration: xxx minutes -> chỉ lấy xxx
+            // eslint-disable-next-line react/prop-types
+            category_name: movie.category_name,
+            // eslint-disable-next-line react/prop-types
             duration: movie.duration.split(' ')[0],
+            // eslint-disable-next-line react/prop-types
             release_date: convertDateToInputFormat(movie.releaseDate),
+            // eslint-disable-next-line react/prop-types
             early_release_date: convertDateToInputFormat(movie.earlyReleaseDate),
+            // eslint-disable-next-line react/prop-types
             country: movie.country,
+            // eslint-disable-next-line react/prop-types
             director: movie.director,
+            // eslint-disable-next-line react/prop-types
             list_actor: movie.listActor,
+            // eslint-disable-next-line react/prop-types
             description: movie.description,
+            // eslint-disable-next-line react/prop-types
             image_url: movie.imageUrl,
         });
         setIsChanged(false);
     }, [movie]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get(apiCategoryUrl);
+                setCategories(response.data);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -59,6 +86,34 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         };
         fetchCountries();
     }, []);
+
+    useEffect(() => {
+        if (movieData.category_name && categories.length > 0) {
+            const matchedCategory = categories.find(
+                (category) => category.category_name === movieData.category_name
+            );
+            if (matchedCategory) {
+                setMovieData((prevData) => ({
+                    ...prevData,
+                    category_id: matchedCategory._id,
+                }));
+            }
+        }
+    }, [movieData.category_name, categories]);
+
+    useEffect(() => {
+        if (movieData.country && countries.length > 0) {
+            const matchedCountry = countries.find(
+                (country) => country === movieData.country
+            );
+            if (matchedCountry) {
+                setMovieData((prevData) => ({
+                    ...prevData,
+                    country: matchedCountry,
+                }));
+            }
+        }
+    }, [movieData.country, countries]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -149,13 +204,28 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         </FormItem>
                         <FormItem>
                             <LabelCustom>Category:</LabelCustom>
-                            <StyledInput
-                                type="text"
+                            <select
                                 name="category_id"
                                 value={movieData.category_id}
                                 onChange={handleInputChange}
-                            />
+                                style={{
+                                    padding: "12px 10px",
+                                    border: "1px solid #ccc",
+                                    borderRadius: "4px",
+                                    fontSize: "14px",
+                                    marginTop: "5px"
+                                }}
+                            >
+                                <option value="" disabled>-- Select a Category --</option>
+                                {categories.map((category) => (
+                                    <option key={category._id} value={category._id}>
+                                        {category.category_name}
+                                    </option>
+                                ))}
+                            </select>
+
                         </FormItem>
+
                         <FormItem>
                             <LabelCustom>Duration:</LabelCustom>
                             <StyledInput
@@ -197,7 +267,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                                     marginTop: "5px"
                                 }}
                             >
-                                <option value="">Select a country</option>
+                                <option value="" disabled>-- Select a Country --</option>
                                 {countries.map((country, index) => (
                                     <option key={index} value={country}>
                                         {country}
@@ -205,7 +275,6 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                                 ))}
                             </select>
                         </FormItem>
-
                         <FormItem>
                             <LabelCustom>Director:</LabelCustom>
                             <StyledInput
