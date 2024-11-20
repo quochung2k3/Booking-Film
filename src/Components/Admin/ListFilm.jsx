@@ -123,7 +123,7 @@ function ListFilm() {
         try {
             setIsLoading(true);
             await axios.put(`${apiGetFilm}${movieToDelete}`, {
-                is_active: activeTab === "Active" ? false : true,
+                is_active: activeTab !== "Active",
             });
 
             const response = await axios.get(apiGetFilm);

@@ -9,6 +9,7 @@ import LoginAlertModal from "../Components/User/LoginAlertModal.jsx";
 import Loading from "../utils/Loading.jsx";
 
 const Container = styled.div`
+    width: 9999px;
     padding-top: 80px;
     padding-bottom: 60px;
     text-align: center;

@@ -1,25 +1,28 @@
 ﻿import axios from "axios";
 import {useState, useEffect} from "react";
 import styled from "styled-components";
+import Select from "react-select";
 import Loading from "../utils/Loading.jsx";
 
-const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
-const apiCategoryUrl = import.meta.env.VITE_API_CATEGORY_URL
+const apiFilmUrl = import.meta.env.VITE_API_FILM_URL;
+const apiCategoryUrl = import.meta.env.VITE_API_CATEGORY_URL;
 
 // eslint-disable-next-line react/prop-types
 function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
-    const [categories, setCategories] = useState([]);
     const [countries, setCountries] = useState([]);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState({
+        value: "",
+        label: "",
+    });
+    const [listCategory, setListCategory] = useState([]);
     const [loading, setLoading] = useState(false);
-
-    console.log(movie)
-    let title = 'Create Movie';
+    let title = "Create Movie";
     // eslint-disable-next-line react/prop-types
     if (movie.movieName) {
-        title = 'Details'
+        title = "Details";
     }
 
     const convertDateToInputFormat = (date) => {
@@ -32,88 +35,63 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         return date;
     };
 
-
     // Reset dữ liệu khi mở modal
     useEffect(() => {
+        console.log("movie: ", movie.listActor);
         setMovieData({
-            // eslint-disable-next-line react/prop-types
             id: movie.id,
-            // eslint-disable-next-line react/prop-types
             film_name: movie.movieName,
-            // eslint-disable-next-line react/prop-types
-            category_name: movie.category_name,
-            // eslint-disable-next-line react/prop-types
-            duration: movie.duration.split(' ')[0],
-            // eslint-disable-next-line react/prop-types
+            category_id: movie.category,
+
+            // movie.duration: xxx minutes -> chỉ lấy xxx
+            duration: movie.duration.split(" ")[0],
             release_date: convertDateToInputFormat(movie.releaseDate),
-            // eslint-disable-next-line react/prop-types
             early_release_date: convertDateToInputFormat(movie.earlyReleaseDate),
-            // eslint-disable-next-line react/prop-types
             country: movie.country,
-            // eslint-disable-next-line react/prop-types
             director: movie.director,
-            // eslint-disable-next-line react/prop-types
             list_actor: movie.listActor,
-            // eslint-disable-next-line react/prop-types
             description: movie.description,
-            // eslint-disable-next-line react/prop-types
             image_url: movie.imageUrl,
         });
         setIsChanged(false);
     }, [movie]);
 
     useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await axios.get(apiCategoryUrl);
-                setCategories(response.data);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-            }
-        };
-        fetchCategories();
-    }, []);
+        if (listCategory.length > 0) {
+            const category = listCategory.find(
+                (category) => category.label === movie.category
+            );
+            setSelectedCategory(category);
+        }
+    }, [listCategory]);
 
     useEffect(() => {
         const fetchCountries = async () => {
             try {
                 const response = await axios.get("https://restcountries.com/v3.1/all");
-                const countryNames = response.data.map(country => country.name.common).sort();
+                const countryNames = response.data
+                    .map((country) => country.name.common)
+                    .sort();
                 setCountries(countryNames);
             } catch (error) {
                 console.error("Error fetching countries:", error);
             }
         };
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get(`${apiCategoryUrl}`);
+                const categories = response.data.map((category) => ({
+                    value: category._id,
+                    label: category.category_name,
+                }));
+                setListCategory(categories);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+            }
+        };
         fetchCountries();
+        fetchCategories();
     }, []);
-
-    useEffect(() => {
-        if (movieData.category_name && categories.length > 0) {
-            const matchedCategory = categories.find(
-                (category) => category.category_name === movieData.category_name
-            );
-            if (matchedCategory) {
-                setMovieData((prevData) => ({
-                    ...prevData,
-                    category_id: matchedCategory._id,
-                }));
-            }
-        }
-    }, [movieData.category_name, categories]);
-
-    useEffect(() => {
-        if (movieData.country && countries.length > 0) {
-            const matchedCountry = countries.find(
-                (country) => country === movieData.country
-            );
-            if (matchedCountry) {
-                setMovieData((prevData) => ({
-                    ...prevData,
-                    country: matchedCountry,
-                }));
-            }
-        }
-    }, [movieData.country, countries]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -133,11 +111,11 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
     };
 
     const handleSubmit = async () => {
-        let method = 'POST';
+        let method = "POST";
         let url = apiFilmUrl;
 
-        if (title === 'Details') {
-            method = 'PUT';
+        if (title === "Details") {
+            method = "PUT";
             url = `${apiFilmUrl}${movieData.id}`;
         }
 
@@ -145,8 +123,10 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
         for (const key in movieData) {
             if (movieData[key]) {
-                if (key === 'list_actor') {
-                    const actors = movieData.list_actor.split(',').map(actor => actor.trim());
+                if (key === "list_actor") {
+                    const actors = movieData.list_actor
+                        .split(",")
+                        .map((actor) => actor.trim());
                     actors.forEach((actor) => {
                         formData.append(`list_actor`, actor);
                     });
@@ -158,21 +138,26 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
 
         if (selectedImage) {
             formData.append("image", selectedImage);
-        } else if (method === 'POST') {
+        } else if (method === "POST") {
             alert("Vui lòng chọn hình ảnh trước khi gửi.");
             return;
         }
 
         try {
             setLoading(true);
-            const response = method === 'POST'
-                ? await axios.post(url, formData)
-                : await axios.put(url, formData);
+            const response =
+                method === "POST"
+                    ? await axios.post(url, formData)
+                    : await axios.put(url, formData);
 
             onSubmit(response.data);
             onClose();
         } catch (error) {
-            alert(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response?.data?.message || error.message}`);
+            alert(
+                `Không thể ${method === "POST" ? "tạo mới" : "cập nhật"} phim: ${
+                    error.response?.data?.message || error.message
+                }`
+            );
         } finally {
             setLoading(false);
         }
@@ -189,9 +174,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             {loading && <Loading/>}
             <ModalOverlay onClick={handleOverlayClick}>
                 <ModalContent>
-                    <TitleCustom>
-                        {title}
-                    </TitleCustom>
+                    <TitleCustom>{title}</TitleCustom>
                     <FormGrid>
                         <FormItem>
                             <LabelCustom>Movie Name:</LabelCustom>
@@ -204,28 +187,27 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         </FormItem>
                         <FormItem>
                             <LabelCustom>Category:</LabelCustom>
-                            <select
-                                name="category_id"
-                                value={movieData.category_id}
-                                onChange={handleInputChange}
-                                style={{
-                                    padding: "12px 10px",
-                                    border: "1px solid #ccc",
-                                    borderRadius: "4px",
-                                    fontSize: "14px",
-                                    marginTop: "5px"
+                            <Select
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        paddingBottom: "3px",
+                                        marginTop: "4px",
+                                    }),
                                 }}
-                            >
-                                <option value="" disabled>-- Select a Category --</option>
-                                {categories.map((category) => (
-                                    <option key={category._id} value={category._id}>
-                                        {category.category_name}
-                                    </option>
-                                ))}
-                            </select>
+                                options={listCategory}
+                                value={selectedCategory}
+                                onChange={(selectedOption) => {
+                                    setSelectedCategory(selectedOption);
+                                    setMovieData({
+                                        ...movieData,
+                                        category_id: selectedOption.value,
+                                    });
+                                    setIsChanged(true);
+                                }}
+                            />
 
                         </FormItem>
-
                         <FormItem>
                             <LabelCustom>Duration:</LabelCustom>
                             <StyledInput
@@ -264,10 +246,10 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                                     border: "1px solid #ccc",
                                     borderRadius: "4px",
                                     fontSize: "14px",
-                                    marginTop: "5px"
+                                    marginTop: "5px",
                                 }}
                             >
-                                <option value="" disabled>-- Select a Country --</option>
+                                <option value="">Select a country</option>
                                 {countries.map((country, index) => (
                                     <option key={index} value={country}>
                                         {country}
@@ -275,6 +257,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                                 ))}
                             </select>
                         </FormItem>
+
                         <FormItem>
                             <LabelCustom>Director:</LabelCustom>
                             <StyledInput
@@ -310,25 +293,31 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                             />
                         </FormItem>
                         {/* show selected image */}
-                        {
-                            selectedImage && (
-                                <FormItem fullWidth>
-                                    <img src={URL.createObjectURL(selectedImage)} alt="Selected" style={{width: "20%"}}/>
-                                </FormItem>
-                            )
-                        }
-                        {
-                            movieData.image_url && !selectedImage && (
-                                <FormItem fullWidth>
-                                    <img src={movieData.image_url} alt="Movie" style={{width: "20%"}}/>
-                                </FormItem>
-                            )
-                        }
+                        {selectedImage && (
+                            <FormItem fullWidth>
+                                <img
+                                    src={URL.createObjectURL(selectedImage)}
+                                    alt="Selected"
+                                    style={{width: "20%"}}
+                                />
+                            </FormItem>
+                        )}
+                        {movieData.image_url && !selectedImage && (
+                            <FormItem fullWidth>
+                                <img
+                                    src={movieData.image_url}
+                                    alt="Movie"
+                                    style={{width: "20%"}}
+                                />
+                            </FormItem>
+                        )}
                     </FormGrid>
                     {isChanged && (
                         <ButtonContainer>
                             <Button onClick={handleReset}>Reset</Button>
-                            <Button primary onClick={handleSubmit}>Submit</Button>
+                            <Button primary onClick={handleSubmit}>
+                                Submit
+                            </Button>
                         </ButtonContainer>
                     )}
                     <CloseButton onClick={onClose}>X</CloseButton>
@@ -424,9 +413,9 @@ const CloseButton = styled.span`
 const TitleCustom = styled.h3`
     text-align: center;
     font-size: 1.5rem;
-`
+`;
 
 const LabelCustom = styled.label`
     font-weight: bold;
     font-size: 1.2rem;
-`
+`;
