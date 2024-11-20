@@ -28,7 +28,7 @@ function ListFilm() {
                     id: movie._id,
                     movieName: movie.film_name,
                     description: movie.description,
-                    category_name: movie.category_id?.category_name || "Unknown",
+                    category: movie.category_id?.category_name || "Unknown",
                     duration: `${movie.duration} minutes`,
                     releaseDate: new Date(movie.release_date).toLocaleDateString(),
                     earlyReleaseDate: movie.early_release_date
@@ -70,7 +70,7 @@ function ListFilm() {
             id: movies.length + 1,
             movieName: "",
             description: "",
-            category_name: "",
+            category: "",
             duration: "",
             releaseDate: "",
             earlyReleaseDate: "",
@@ -96,7 +96,7 @@ function ListFilm() {
                 id: movie._id,
                 movieName: movie.film_name,
                 description: movie.description,
-                category_name: movie.category_id?.category_name || "Unknown",
+                category: movie.category_id?.category_name || "Unknown",
                 duration: `${movie.duration} minutes`,
                 releaseDate: new Date(movie.release_date).toLocaleDateString(),
                 earlyReleaseDate: movie.early_release_date
@@ -131,7 +131,7 @@ function ListFilm() {
                 id: movie._id,
                 movieName: movie.film_name,
                 description: movie.description,
-                category_name: movie.category_id?.category_name || "Unknown",
+                category: movie.category_id?.category_name || "Unknown",
                 duration: `${movie.duration} minutes`,
                 releaseDate: new Date(movie.release_date).toLocaleDateString(),
                 earlyReleaseDate: movie.early_release_date
@@ -199,7 +199,7 @@ function ListFilm() {
                             <Image src={movie.imageUrl} alt={movie.movieName}/>
                             <CardContent>
                                 <h3>{movie.movieName}</h3>
-                                <p><strong>Category:</strong> {movie.category_name}</p>
+                                <p><strong>Category:</strong> {movie.category}</p>
                                 <p><strong>Duration:</strong> {movie.duration}</p>
                                 <p><strong>Release Date:</strong> {movie.releaseDate}</p>
                                 <p><strong>Country:</strong> {movie.country}</p>
