@@ -452,13 +452,19 @@ function SolveBooking({onLogout}) {
             alert("Vui lòng chọn ít nhất một ghế!");
             return;
         }
-
         setIsPaymentLoading(true);
-
         try {
-            const token = localStorage.getItem("authToken");
-            if (!token) {
+            const tokenString = localStorage.getItem("token");
+            if (!tokenString) {
                 alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thanh toán!");
+                setIsPaymentLoading(false);
+                return;
+            }
+            const parsedToken = JSON.parse(tokenString);
+            const token = parsedToken?.token;
+
+            if (!token) {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
                 setIsPaymentLoading(false);
                 return;
             }
@@ -467,9 +473,7 @@ function SolveBooking({onLogout}) {
                 const seat = seats.flat().find((s) => s.seatId === seatId);
                 return total + (seat ? seat.price : 0);
             }, 0);
-
             console.log("Tổng số tiền thanh toán:", totalAmount);
-
             const createOrderResponse = await axios.post(
                 "http://localhost:3000/api/v1/zalopay/create-order",
                 {
@@ -480,42 +484,48 @@ function SolveBooking({onLogout}) {
                     paid_amount: totalAmount - (totalAmount * discount) / 100,
                 },
                 {
-                    headers: {Authorization: `Bearer ${token}`},
+                    headers: { Authorization: `Bearer ${token}` },
                 }
             );
-
             console.log("Kết quả từ API create-order:", createOrderResponse.data);
-            const {order_url} = createOrderResponse.data;
+            const { order_url } = createOrderResponse.data;
             window.location.href = order_url;
         } catch (error) {
-            console.error("Lỗi trong quá trình thanh toán:", error.message);
-            alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
+            if (error.response?.data?.EM === "Invalid token.") {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+            } else {
+                alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            }
         } finally {
             setIsPaymentLoading(false);
         }
     };
-
     const handlePaymentMoMo = async () => {
         if (selectedSeats.length === 0) {
             alert("Vui lòng chọn ít nhất một ghế!");
             return;
         }
-
         setIsPaymentLoading(true);
-
         try {
-            const token = localStorage.getItem("authToken");
-            if (!token) {
+            const tokenString = localStorage.getItem("token");
+            if (!tokenString) {
                 alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để thanh toán!");
                 setIsPaymentLoading(false);
                 return;
             }
+            const parsedToken = JSON.parse(tokenString);
+            const token = parsedToken?.token;
 
+            if (!token) {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+                setIsPaymentLoading(false);
+                return;
+            }
             const totalAmount = selectedSeats.reduce((total, seatId) => {
                 const seat = seats.flat().find((s) => s.seatId === seatId);
                 return total + (seat ? seat.price : 0);
             }, 0);
-
             console.log("Tổng số tiền thanh toán:", totalAmount);
             const createOrderResponse = await axios.post(
                 "http://localhost:3000/api/v1/payment/momopay",
@@ -527,15 +537,19 @@ function SolveBooking({onLogout}) {
                     paid_amount: totalAmount - (totalAmount * discount) / 100,
                 },
                 {
-                    headers: {Authorization: `Bearer ${token}`},
+                    headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            console.log("Kết quả từ API create-order:", createOrderResponse.data.data.shortLink);
-            window.location.href = createOrderResponse.data.data.shortLink;
-
+            console.log("Kết quả từ API create-order:", createOrderResponse.data);
+            const { shortLink } = createOrderResponse.data.data;
+            window.location.href = shortLink;
         } catch (error) {
-            console.error("Error in payment process:", error.message);
-            alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
+            if (error.response?.data?.EM === "Invalid token.") {
+                alert("Token không hợp lệ. Vui lòng đăng nhập lại!");
+            } else {
+                alert("Có lỗi xảy ra khi thanh toán. Vui lòng thử lại!");
+            }
         } finally {
             setIsPaymentLoading(false);
         }

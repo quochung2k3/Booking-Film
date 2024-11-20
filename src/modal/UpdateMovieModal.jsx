@@ -1,15 +1,16 @@
-﻿// MovieModal.jsx
-import axios from "axios";
-import { useState, useEffect } from "react";
+﻿import axios from "axios";
+import {useState, useEffect} from "react";
 import styled from "styled-components";
+import Loading from "../utils/Loading.jsx";
 
 const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
 
 // eslint-disable-next-line react/prop-types
-function UpdateMovieModal({ movie, onClose, onSubmit }) {
+function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [loading, setLoading] = useState(false);
     let title = 'Create Movie';
     // eslint-disable-next-line react/prop-types
     if (movie.movieName) {
@@ -52,8 +53,8 @@ function UpdateMovieModal({ movie, onClose, onSubmit }) {
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setMovieData({ ...movieData, [name]: value });
+        const {name, value} = e.target;
+        setMovieData({...movieData, [name]: value});
         setIsChanged(true); // Đánh dấu đã có thay đổi
     };
 
@@ -100,6 +101,7 @@ function UpdateMovieModal({ movie, onClose, onSubmit }) {
         }
 
         try {
+            setLoading(true)
             console.log("url: ", url)
             const response = method === 'POST'
                 ? await axios.post(url, formData)
@@ -107,12 +109,12 @@ function UpdateMovieModal({ movie, onClose, onSubmit }) {
             alert(`Đã ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim thành công!`);
             console.log("response: ", response.data)
             onSubmit(response.data);
+            onClose();
+            setLoading(false)
         } catch (error) {
             alert(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response.data.message}`);
-            throw new Error(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response.data.message}`);
+            setLoading(false)
         }
-
-        onClose();
     };
 
 
@@ -123,125 +125,128 @@ function UpdateMovieModal({ movie, onClose, onSubmit }) {
     };
 
     return (
-        <ModalOverlay onClick={handleOverlayClick}>
-            <ModalContent>
-                <TitleCustom>
-                    {title}
-                </TitleCustom>
-                <FormGrid>
-                    <FormItem>
-                        <LabelCustom>Movie Name:</LabelCustom>
-                        <StyledInput
-                            type="text"
-                            name="film_name"
-                            value={movieData.film_name}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Category:</LabelCustom>
-                        <StyledInput
-                            type="text"
-                            name="category_id"
-                            value={movieData.category_id}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Duration:</LabelCustom>
-                        <StyledInput
-                            type="number"
-                            name="duration"
-                            value={movieData.duration}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Release Date:</LabelCustom>
-                        <StyledInput
-                            type="date"
-                            name="release_date"
-                            value={movieData.release_date}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Early Release Date:</LabelCustom>
-                        <StyledInput
-                            type="date"
-                            name="early_release_date"
-                            value={movieData.early_release_date}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Country:</LabelCustom>
-                        <StyledInput
-                            type="text"
-                            name="country"
-                            value={movieData.country}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Director:</LabelCustom>
-                        <StyledInput
-                            type="text"
-                            name="director"
-                            value={movieData.director}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem>
-                        <LabelCustom>Actors:</LabelCustom>
-                        <StyledInput
-                            type="text"
-                            name="list_actor"
-                            value={movieData.list_actor}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem fullWidth>
-                        <LabelCustom>Description:</LabelCustom>
-                        <StyledTextarea
-                            name="description"
-                            value={movieData.description}
-                            onChange={handleInputChange}
-                        />
-                    </FormItem>
-                    <FormItem fullWidth>
-                        <LabelCustom>Image:</LabelCustom>
-                        <StyledInput
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange} // Xử lý chọn ảnh
-                        />
-                    </FormItem>
-                    {/* show selected image */}
-                    {
-                        selectedImage && (
-                            <FormItem fullWidth>
-                                <img src={URL.createObjectURL(selectedImage)} alt="Selected" style={{ width: "20%" }} />
-                            </FormItem>
-                        )
-                    }
-                    {
-                        movieData.image_url && !selectedImage && (
-                            <FormItem fullWidth>
-                                <img src={movieData.image_url} alt="Movie" style={{ width: "20%" }} />
-                            </FormItem>
-                        )
-                    }
-                </FormGrid>
-                {isChanged && (
-                    <ButtonContainer>
-                        <Button onClick={handleReset}>Reset</Button>
-                        <Button primary onClick={handleSubmit}>Submit</Button>
-                    </ButtonContainer>
-                )}
-                <CloseButton onClick={onClose}>X</CloseButton>
-            </ModalContent>
-        </ModalOverlay>
+        <>
+            {loading && <Loading/>}
+            <ModalOverlay onClick={handleOverlayClick}>
+                <ModalContent>
+                    <TitleCustom>
+                        {title}
+                    </TitleCustom>
+                    <FormGrid>
+                        <FormItem>
+                            <LabelCustom>Movie Name:</LabelCustom>
+                            <StyledInput
+                                type="text"
+                                name="film_name"
+                                value={movieData.film_name}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Category:</LabelCustom>
+                            <StyledInput
+                                type="text"
+                                name="category_id"
+                                value={movieData.category_id}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Duration:</LabelCustom>
+                            <StyledInput
+                                type="number"
+                                name="duration"
+                                value={movieData.duration}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Release Date:</LabelCustom>
+                            <StyledInput
+                                type="date"
+                                name="release_date"
+                                value={movieData.release_date}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Early Release Date:</LabelCustom>
+                            <StyledInput
+                                type="date"
+                                name="early_release_date"
+                                value={movieData.early_release_date}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Country:</LabelCustom>
+                            <StyledInput
+                                type="text"
+                                name="country"
+                                value={movieData.country}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Director:</LabelCustom>
+                            <StyledInput
+                                type="text"
+                                name="director"
+                                value={movieData.director}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <LabelCustom>Actors:</LabelCustom>
+                            <StyledInput
+                                type="text"
+                                name="list_actor"
+                                value={movieData.list_actor}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem fullWidth>
+                            <LabelCustom>Description:</LabelCustom>
+                            <StyledTextarea
+                                name="description"
+                                value={movieData.description}
+                                onChange={handleInputChange}
+                            />
+                        </FormItem>
+                        <FormItem fullWidth>
+                            <LabelCustom>Image:</LabelCustom>
+                            <StyledInput
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange} // Xử lý chọn ảnh
+                            />
+                        </FormItem>
+                        {/* show selected image */}
+                        {
+                            selectedImage && (
+                                <FormItem fullWidth>
+                                    <img src={URL.createObjectURL(selectedImage)} alt="Selected" style={{width: "20%"}}/>
+                                </FormItem>
+                            )
+                        }
+                        {
+                            movieData.image_url && !selectedImage && (
+                                <FormItem fullWidth>
+                                    <img src={movieData.image_url} alt="Movie" style={{width: "20%"}}/>
+                                </FormItem>
+                            )
+                        }
+                    </FormGrid>
+                    {isChanged && (
+                        <ButtonContainer>
+                            <Button onClick={handleReset}>Reset</Button>
+                            <Button primary onClick={handleSubmit}>Submit</Button>
+                        </ButtonContainer>
+                    )}
+                    <CloseButton onClick={onClose}>X</CloseButton>
+                </ModalContent>
+            </ModalOverlay>
+        </>
     );
 }
 
