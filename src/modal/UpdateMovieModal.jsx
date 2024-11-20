@@ -188,6 +188,13 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         <FormItem>
                             <LabelCustom>Category:</LabelCustom>
                             <Select
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        paddingBottom: "3px",
+                                        marginTop: "4px",
+                                    }),
+                                }}
                                 options={listCategory}
                                 value={selectedCategory}
                                 onChange={(selectedOption) => {
@@ -199,6 +206,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                                     setIsChanged(true);
                                 }}
                             />
+
                         </FormItem>
                         <FormItem>
                             <LabelCustom>Duration:</LabelCustom>
