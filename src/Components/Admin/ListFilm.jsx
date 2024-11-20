@@ -12,7 +12,7 @@ function ListFilm() {
     const [movies, setMovies] = useState([]);
     const [, setShowTimes] = useState([]);
     const [selectedMovie, setSelectedMovie] = useState(null);
-    const [isCreateMode, setIsCreateMode] = useState(false);
+    const [, setIsCreateMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("Active");
     const [nonDeletableFilmIds, setNonDeletableFilmIds] = useState([]);
@@ -88,16 +88,36 @@ function ListFilm() {
         setIsCreateMode(false);
     };
 
-    const handleSubmitModal = (updatedMovie) => {
-        if (isCreateMode) {
-            setMovies([...movies, updatedMovie]);
-        } else {
-            setMovies(movies.map((movie) =>
-                movie.id === updatedMovie.id ? updatedMovie : movie
-            ));
+    const handleSubmitModal = async () => {
+        setIsLoading(true)
+        try {
+            const response = await axios.get(apiGetFilm);
+            const apiMovies = response.data.map((movie) => ({
+                id: movie._id,
+                movieName: movie.film_name,
+                description: movie.description,
+                category: movie.category_id?.category_name || "Unknown",
+                duration: `${movie.duration} minutes`,
+                releaseDate: new Date(movie.release_date).toLocaleDateString(),
+                earlyReleaseDate: movie.early_release_date
+                    ? new Date(movie.early_release_date).toLocaleDateString()
+                    : null,
+                country: movie.country || "Unknown",
+                director: movie.director,
+                listActor: movie.list_actor.join(", ") || "Unknown",
+                imageUrl: movie.image_url || "",
+                isActive: movie.is_active,
+            }));
+
+            setMovies(apiMovies);
+            handleCloseModal();
+        } catch (error) {
+            console.error("Error updating movie:", error);
+        } finally {
+            setIsLoading(false);
         }
-        handleCloseModal();
     };
+
 
     const handleConfirmSubmit = async () => {
         try {

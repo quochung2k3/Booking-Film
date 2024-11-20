@@ -8,6 +8,7 @@ const apiFilmUrl = import.meta.env.VITE_API_FILM_URL
 // eslint-disable-next-line react/prop-types
 function UpdateMovieModal({movie, onClose, onSubmit}) {
     const [movieData, setMovieData] = useState(movie);
+    const [countries, setCountries] = useState([]);
     const [isChanged, setIsChanged] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -46,29 +47,40 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         setIsChanged(false);
     }, [movie]);
 
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get("https://restcountries.com/v3.1/all");
+                const countryNames = response.data.map(country => country.name.common).sort();
+                setCountries(countryNames);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        };
+        fetchCountries();
+    }, []);
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setSelectedImage(file);
-        setIsChanged(true); // Đánh dấu đã có thay đổi
+        setIsChanged(true);
     };
 
     const handleInputChange = (e) => {
         const {name, value} = e.target;
         setMovieData({...movieData, [name]: value});
-        setIsChanged(true); // Đánh dấu đã có thay đổi
+        setIsChanged(true);
     };
 
     const handleReset = () => {
         setMovieData(movie);
-        setIsChanged(false); // Reset lại trạng thái thay đổi
+        setIsChanged(false);
     };
 
     const handleSubmit = async () => {
-        console.log("submit")
         let method = 'POST';
         let url = apiFilmUrl;
 
-        // Nếu đang cập nhật phim hiện tại, sử dụng PUT thay vì POST
         if (title === 'Details') {
             method = 'PUT';
             url = `${apiFilmUrl}${movieData.id}`;
@@ -79,7 +91,6 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
         for (const key in movieData) {
             if (movieData[key]) {
                 if (key === 'list_actor') {
-                    // list_actor: "actor1, actor2, actor3" -> ["actor1", "actor2", "actor3"]
                     const actors = movieData.list_actor.split(',').map(actor => actor.trim());
                     actors.forEach((actor) => {
                         formData.append(`list_actor`, actor);
@@ -90,33 +101,27 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             }
         }
 
-        // Kiểm tra nếu hình ảnh đã được chọn
         if (selectedImage) {
             formData.append("image", selectedImage);
-        } else {
-            if (method === 'POST') {
-                alert("Vui lòng chọn hình ảnh trước khi gửi.");
-                return;
-            }
+        } else if (method === 'POST') {
+            alert("Vui lòng chọn hình ảnh trước khi gửi.");
+            return;
         }
 
         try {
-            setLoading(true)
-            console.log("url: ", url)
+            setLoading(true);
             const response = method === 'POST'
                 ? await axios.post(url, formData)
                 : await axios.put(url, formData);
-            alert(`Đã ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim thành công!`);
-            console.log("response: ", response.data)
+
             onSubmit(response.data);
             onClose();
-            setLoading(false)
         } catch (error) {
-            alert(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response.data.message}`);
-            setLoading(false)
+            alert(`Không thể ${method === 'POST' ? 'tạo mới' : 'cập nhật'} phim: ${error.response?.data?.message || error.message}`);
+        } finally {
+            setLoading(false);
         }
     };
-
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -180,13 +185,27 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                         </FormItem>
                         <FormItem>
                             <LabelCustom>Country:</LabelCustom>
-                            <StyledInput
-                                type="text"
+                            <select
                                 name="country"
                                 value={movieData.country}
                                 onChange={handleInputChange}
-                            />
+                                style={{
+                                    padding: "12px 10px",
+                                    border: "1px solid #ccc",
+                                    borderRadius: "4px",
+                                    fontSize: "14px",
+                                    marginTop: "5px"
+                                }}
+                            >
+                                <option value="">Select a country</option>
+                                {countries.map((country, index) => (
+                                    <option key={index} value={country}>
+                                        {country}
+                                    </option>
+                                ))}
+                            </select>
                         </FormItem>
+
                         <FormItem>
                             <LabelCustom>Director:</LabelCustom>
                             <StyledInput
@@ -218,7 +237,7 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
                             <StyledInput
                                 type="file"
                                 accept="image/*"
-                                onChange={handleImageChange} // Xử lý chọn ảnh
+                                onChange={handleImageChange}
                             />
                         </FormItem>
                         {/* show selected image */}
