@@ -346,6 +346,11 @@ const generateSeats = (bookedSeats, vipPrice, normalPrice) => {
     return seats;
 };
 
+const apiPaymentUrl = import.meta.env.VITE_API_PAYMENT_URL
+const apiDiscountUrl = import.meta.env.VITE_API_DISCOUNT_URL
+const apiCreateOrderUrl = import.meta.env.VITE_API_CREATE_ORDER_URL
+const apiMomoPayUrl = import.meta.env.VITE_API_MOMO_PAY_URL
+
 // eslint-disable-next-line react/prop-types
 function SolveBooking({onLogout}) {
     const location = useLocation();
@@ -368,7 +373,7 @@ function SolveBooking({onLogout}) {
                 try {
                     setIsLoading(true)
                     const response = await axios.get(
-                        `http://localhost:3000/api/v1/payment/${showTimeDetails._id}/showtime`
+                        `${apiPaymentUrl}${showTimeDetails._id}/showtime`
                     );
 
                     const bookedSeats = response.data.flatMap((payment) => payment.list_seat);
@@ -429,7 +434,7 @@ function SolveBooking({onLogout}) {
         setVoucherSuccess('');
         setVoucherError('');
         try {
-            const response = await axios.post('http://localhost:3000/api/v1/discount/apply', {
+            const response = await axios.post(apiDiscountUrl, {
                 code: voucherCode,
             });
 
@@ -475,7 +480,7 @@ function SolveBooking({onLogout}) {
             }, 0);
             console.log("Tổng số tiền thanh toán:", totalAmount);
             const createOrderResponse = await axios.post(
-                "http://localhost:3000/api/v1/zalopay/create-order",
+                apiCreateOrderUrl,
                 {
                     show_time_id: showTimeDetails?._id,
                     list_seat: selectedSeats,
@@ -484,11 +489,11 @@ function SolveBooking({onLogout}) {
                     paid_amount: totalAmount - (totalAmount * discount) / 100,
                 },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                 }
             );
             console.log("Kết quả từ API create-order:", createOrderResponse.data);
-            const { order_url } = createOrderResponse.data;
+            const {order_url} = createOrderResponse.data;
             window.location.href = order_url;
         } catch (error) {
             console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
@@ -528,7 +533,7 @@ function SolveBooking({onLogout}) {
             }, 0);
             console.log("Tổng số tiền thanh toán:", totalAmount);
             const createOrderResponse = await axios.post(
-                "http://localhost:3000/api/v1/payment/momopay",
+                apiMomoPayUrl,
                 {
                     show_time_id: showTimeDetails?._id,
                     list_seat: selectedSeats,
@@ -537,11 +542,11 @@ function SolveBooking({onLogout}) {
                     paid_amount: totalAmount - (totalAmount * discount) / 100,
                 },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                 }
             );
             console.log("Kết quả từ API create-order:", createOrderResponse.data);
-            const { shortLink } = createOrderResponse.data.data;
+            const {shortLink} = createOrderResponse.data.data;
             window.location.href = shortLink;
         } catch (error) {
             console.error("Lỗi trong quá trình thanh toán:", error.response?.data || error.message);
