@@ -531,6 +531,11 @@ function SolveBooking({onLogout}) {
                 const seat = seats.flat().find((s) => s.seatId === seatId);
                 return total + (seat ? seat.price : 0);
             }, 0);
+            console.log(showTimeDetails?._id)
+            console.log(selectedSeats)
+            console.log(totalAmount)
+            console.log(discount)
+            console.log(totalAmount - (totalAmount * discount) / 100)
             console.log("Tổng số tiền thanh toán:", totalAmount);
             const createOrderResponse = await axios.post(
                 apiMomoPayUrl,
