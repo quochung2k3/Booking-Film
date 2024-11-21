@@ -61,6 +61,10 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
             const category = listCategory.find(
                 (category) => category.label === movie.category
             );
+            setMovieData({
+                ...movieData,
+                category_id: category.value,
+            });
             setSelectedCategory(category);
         }
     }, [listCategory]);
