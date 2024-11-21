@@ -57,10 +57,11 @@ function UpdateMovieModal({movie, onClose, onSubmit}) {
     }, [movie]);
 
     useEffect(() => {
-        if (listCategory.length > 0) {
+        if (listCategory.length > 0 && movieData.category) {
             const category = listCategory.find(
                 (category) => category.label === movie.category
             );
+
             setMovieData({
                 ...movieData,
                 category_id: category.value,
