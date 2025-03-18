@@ -151,26 +151,31 @@ function BookingModal({movieTitle, movieId, onClose}) {
             try {
                 const response = await axios.get(`${apiShowTimeUrl}${movieId}/film`);
                 const data = response.data;
-                setShowTimes(data);
-
-                if (data.length > 0) {
-                    const firstBranch = data[0].branch_id?._id || '';
+    
+                const filteredShowTimes = data.filter((showTime) => new Date(showTime.start_time) > new Date());
+    
+                setShowTimes(filteredShowTimes);
+    
+                console.log(filteredShowTimes);
+    
+                if (filteredShowTimes.length > 0) {
+                    const firstBranch = filteredShowTimes[0].branch_id?._id || '';
                     setSelectedBranch(firstBranch);
-
-                    const firstDate = data
+    
+                    const firstDate = filteredShowTimes
                         .filter((showTime) => showTime.branch_id?._id === firstBranch)
                         .map((showTime) => new Date(showTime.start_time))
                         .sort((a, b) => a - b)[0]?.toISOString().split('T')[0] || '';
-
+    
                     setSelectedDate(firstDate);
                 }
             } catch (error) {
                 console.error('Lỗi khi lấy danh sách suất chiếu:', error);
             }
         };
-
+    
         fetchShowTimes();
-    }, [movieId]);
+    }, [movieId]);    
 
     const uniqueBranches = Array.from(
         new Map(

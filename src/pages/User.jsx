@@ -136,6 +136,8 @@ const ModalContent = styled.div`
     display: flex;
     flex-direction: row;
     align-items: flex-start;
+    max-height: 70vh;
+    overflow-y: auto;
 `;
 
 const MovieDetailImage = styled.img`
